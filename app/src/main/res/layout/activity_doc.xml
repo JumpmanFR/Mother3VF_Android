@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_doc"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F9FFFFFF"
+    android:paddingLeft="4dp"
+    android:paddingRight="4dp"
+    tools:context="fr.mother3vf.mother3vf.DocActivity">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/docText"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_gravity="center_horizontal"
+            android:typeface="monospace" />
+    </ScrollView>
+</RelativeLayout>
