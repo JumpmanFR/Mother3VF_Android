@@ -33,7 +33,7 @@ public class PatchingDialogModel {
 
     private int resultCode = STEP_NONE;
     private String message;
-    private String docFile = "";
+    private String fileParam = "";
 
     public void set(int code, String msg) {
         resultCode = code;
@@ -42,7 +42,7 @@ public class PatchingDialogModel {
 
     public void set(int code, String msg, String df) {
         set(code, msg);
-        docFile = df;
+        fileParam = df;
     }
 
     public void reset() {
@@ -57,7 +57,7 @@ public class PatchingDialogModel {
         return message;
     }
 
-    public String getDocFile() {
-        return docFile;
+    public String getFileParam() {
+        return fileParam;
     }
 }

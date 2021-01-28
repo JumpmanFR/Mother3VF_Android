@@ -31,12 +31,29 @@ import java.util.zip.ZipInputStream;
  ******************************************************************************/
 public class FileUtils {
 
+    /**
+     * Unzips specified files in an archive and places them in the same directory
+     * @param fileString the archive, as an absolute path
+     * @param wantedFile the file we want, as an absolute path
+     * @param bonusFile another file we want, as an absolute path
+     * @return the wanted file, as an absolute path
+     * @throws IOException if file accesses fail
+     */
     public static String unzip(String fileString, String wantedFile, String bonusFile) throws IOException {
         File zipFile = new File(fileString);
         String targetDirectory = zipFile.getParent();
         return unzip(fileString, wantedFile, bonusFile, targetDirectory);
     }
 
+    /**
+     * Unzips specified files in an archive
+     * @param fileString the archive, as an absolute path
+     * @param wantedFile the file we want, as an absolute path
+     * @param bonusFile another file we want, as an absolute path
+     * @param targetDirectory the directory where to place it, as an absolute path
+     * @return the wanted file, as an absolute path
+     * @throws IOException if file accesses fail
+     */
     public static String unzip(String fileString, String wantedFile, String bonusFile, String targetDirectory) throws IOException {
         Log.v(PatchingTask.class.getSimpleName(), "Décompression de " + fileString);
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(fileString));
@@ -87,6 +104,12 @@ public class FileUtils {
         return new File(targetDirectory, resultFileName).getAbsolutePath();
     }
 
+    /**
+     * Downloads a file from the Web
+     * @param url the file url
+     * @param folder the destination folder, as an absolute path
+     * @return the file, as an absolute path
+     */
     public static String downloadFile(String url, File folder) {
         Log.v(PatchingTask.class.getSimpleName(), "Téléchargement de " + url);
         try {
@@ -114,6 +137,11 @@ public class FileUtils {
         }
     }
 
+    /**
+     * Deletes file in a folder if they match a specified filter (not in a recursive way)
+     * @param folder the folder, as an absolute path
+     * @param filter the regex filter
+     */
     public static void clearFiles(File folder, String filter) {
         if (folder.exists()) {
             String[] fileNames = folder.list();

@@ -173,7 +173,7 @@ public class PatchFinder {
     }
 
     /**
-     * Downloads the archive from the site and extracts the patch from it
+     * Downloads the archive from the site and extracts the patch from it; also broadcasts progress messages for the UI (yeah, it’s a bit dirty)
      * @param destination the folder where we want to extract the archive
      * @return the extracted patch, as an absolute path
      */

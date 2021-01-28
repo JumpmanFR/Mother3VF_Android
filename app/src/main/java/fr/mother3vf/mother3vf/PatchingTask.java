@@ -92,7 +92,7 @@ public class PatchingTask extends IntentService {
                     try {
                         UPS.UpsCrc crc = UPS.readUpsCrc(getBaseContext(), patchFile);
                         if (crc.getOutputFileCRC() == org.apache.commons.io.FileUtils.checksumCRC32(romFile)) {
-                            sendMessage(PatchingDialogModel.STEP_ALREADY, getResources().getString(R.string.already_exists), getBaseContext());
+                            sendMessage(PatchingDialogModel.STEP_ALREADY, getResources().getString(R.string.already_exists), patchFilePath, getBaseContext());
                             return;
                         }
                     } catch (Exception ignored) {

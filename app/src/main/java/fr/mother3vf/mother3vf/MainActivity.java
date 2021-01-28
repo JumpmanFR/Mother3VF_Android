@@ -3,6 +3,7 @@ package fr.mother3vf.mother3vf;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.ActionBar;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -81,6 +82,9 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         super.onCreate(savedInstanceState);
         views = MainBinding.inflate(getLayoutInflater());
         setContentView(views.getRoot());
+
+        ActionBar actionBar = getActionBar(); // Can’t get app name and activity name different without this
+        actionBar.setTitle(R.string.main_view_title);
 
         views.romButton.setOnClickListener(this);
         views.applyPatch.setOnClickListener(this);
@@ -316,6 +320,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 if (response) {
                     patch(false);
                 } else {
+                    patchFile = "";
                     showPatchingCanceled();
                 }
                 break;
@@ -346,6 +351,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 break;
             case DIALOG_PATCH_FAILED: // User has closed the alert after a failed patching process
                 PatchingDialogModel.getInstance().reset();
+                patchFile = "";
                 break;
             case DIALOG_PATCH_SUCCESS: // User has closed the alert after a successful patching process
                 PatchingDialogModel.getInstance().reset();
@@ -400,8 +406,9 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
      * Generates message dialog depending on what happened during the patching process
      */
     private void refreshPatchingDialog() {
-        String message = PatchingDialogModel.getInstance().getMessage();
-        switch (PatchingDialogModel.getInstance().getResultCode()) {
+        PatchingDialogModel patchingDialogModel = PatchingDialogModel.getInstance();
+        String message = patchingDialogModel.getMessage();
+        switch (patchingDialogModel.getResultCode()) {
             case PatchingDialogModel.STEP_FAILED: // The patching process failed
             case PatchingDialogModel.STEP_SUCCESS: // The patching process succeeded
                 if (progressDialog != null) {
@@ -410,7 +417,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 ((Vibrator)getSystemService(VIBRATOR_SERVICE)).vibrate(40);
                 progressDialog = new DFragment();
                 Bundle alertArgs = new Bundle();
-                if (PatchingDialogModel.getInstance().getResultCode() == PatchingDialogModel.STEP_SUCCESS) {
+                if (patchingDialogModel.getResultCode() == PatchingDialogModel.STEP_SUCCESS) {
                     alertArgs.putInt(DFragment.ID, DIALOG_PATCH_SUCCESS);
                 } else {
                     alertArgs.putInt(DFragment.ID, DIALOG_PATCH_FAILED);
@@ -421,10 +428,10 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 progressDialog.setArguments(alertArgs);
                 progressDialog.setCancelable(false);
                 //alertFragment.show(getFragmentManager(), "");
-                docFile = PatchingDialogModel.getInstance().getDocFile();
+                docFile = patchingDialogModel.getFileParam();
                 updateViews();
                 getSupportFragmentManager().beginTransaction().add(progressDialog, "").commitAllowingStateLoss();
-                PatchingDialogModel.getInstance().reset();
+                patchingDialogModel.reset();
                 break;
             case PatchingDialogModel.STEP_RUNNING: // The patching process is running
                 if (progressDialog == null || progressDialog.isDismissed()) {
@@ -440,7 +447,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 } else {
                     progressDialog.updateMessage(message);
                 }
-                PatchingDialogModel.getInstance().reset();
+                patchingDialogModel.reset();
                 break;
             case PatchingDialogModel.STEP_ALREADY: // The patching process has detected the ROM had already been patched
                 if (progressDialog != null) {
@@ -457,6 +464,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 getSupportFragmentManager().beginTransaction().add(progressDialog, "").commitAllowingStateLoss();
                 PatchingDialogModel.getInstance().reset();
                 docFile = "";
+                patchFile = patchingDialogModel.getFileParam();
                 updateViews();
                 break;
             case PatchingDialogModel.STEP_BROWSE: // The patching process was interrupted because the patching file was nowhere to be found

@@ -27,12 +27,12 @@
     <string name="wait_unzip_rom">Décompression de la ROM…</string>
     <string name="wait_prepare">Recherche du patch…</string>
     <string name="wait_download">Patch non trouvé : téléchargement depuis le site…</string>
-    <string name="wait_default_patch">Récupération du patch intégré…</string>
+    <string name="wait_default_patch">Patch non trouvé : recherche dans les fichiers de l’application…</string>
     <string name="wait_unzip_patch">Décompression du patch…</string>
     <string name="wait_patching">Application du patch…</string>
     <string name="success"><![CDATA[<strong>Votre ROM de MOTHER 3 a été patchée avec succès !</strong><br/>Vous pouvez y jouer directement sur cet appareil à l’aide d’un émulateur GBA.<br/><a href="market://search?q=émulateur%20gba">Voir les émulateurs GBA disponibles sur Google Play</a><br/>Bon jeu !]]></string>
     <string name="cant_change_temp_files">L’application du patch s’est terminée mais un problème est survenu lors de la finalisation. Des fichiers temporaires n’ont pas pu être nettoyés. Vérifiez les autorisations d’accès aux fichiers.</string>
-    <string name="patch_not_found">Le fichier de patch n’a pas été trouvé. Voulez-vous spécifier son emplacement ?</string>
+    <string name="patch_not_found">Le fichier de patch (mother3vf.ups) n’a pas été trouvé. Voulez-vous spécifier son emplacement ?</string>
     <string name="rom_not_found">La ROM que vous avez spécifiée est introuvable.</string>
     <string name="rom_zip_error">Une erreur s’est produite lors de la décompression de l’archive zip contenant la ROM.\nEssayez de la décompresser à l’aide d’un outil dédié.</string>
     <string name="rom_zip_not_found">Aucune ROM n’a été trouvée dans l’archive zip que vous avez spécifiée.</string>
