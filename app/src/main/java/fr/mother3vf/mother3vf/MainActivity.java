@@ -1,22 +1,8 @@
-/*******************************************************************************
- * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)
- * <p>
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the GNU Public License v3.0
- * which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/gpl.html
- * <p>
- * Contributors:
- * Paul Kratt - main MultiPatch application for macOS
- * xperia64 - port to Android support
- * JumpmanFR - adaptation for MOTHER3VF
- ******************************************************************************/
 package fr.mother3vf.mother3vf;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.ActionBar;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -30,8 +16,7 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
-import java.io.File;
-
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
@@ -39,6 +24,19 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import fr.mother3vf.mother3vf.databinding.MainBinding;
 
+/*******************************************************************************
+ * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)
+ * <p>
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/gpl.html
+ * <p>
+ * Contributors:
+ * Paul Kratt - main MultiPatch application for macOS
+ * xperia64 - port to Android support
+ * JumpmanFR - adaptation for MOTHER3VF
+ ******************************************************************************/
 public class MainActivity extends FragmentActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
     public static final String ROM_FORMATS = ".*\\.(gba|agb|bin|jgc|rom)";
@@ -85,9 +83,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         views = MainBinding.inflate(getLayoutInflater());
         setContentView(views.getRoot());
 
-        ActionBar actionBar = getActionBar();
-        actionBar.setTitle(R.string.main_view_title);
-
         views.romButton.setOnClickListener(this);
         views.applyPatch.setOnClickListener(this);
         views.website.setOnClickListener(this);
@@ -127,7 +122,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle state) {
+    protected void onSaveInstanceState(@NonNull Bundle state) {
         super.onSaveInstanceState(state);
         state.putString(ROM_FILE, romFile);
         state.putString(PATCH_FILE, patchFile);
@@ -137,7 +132,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     }
 
     @Override
-    public void onAttachFragment(Fragment fragment) {
+    public void onAttachFragment(@NonNull Fragment fragment) {
         super.onAttachFragment(fragment);
         progressDialog = (DFragment) fragment;
     }
@@ -175,24 +170,22 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     @SuppressLint("NewApi")
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case PERMISSION_REQUEST: {
-                // If request is cancelled, the result arrays are empty
-                boolean checkPerms = true;
-                if (permissions.length != NUM_PERMISSIONS || grantResults.length != NUM_PERMISSIONS) {
-                    checkPerms = false;
-                }
+        if (requestCode == PERMISSION_REQUEST) {// If request is cancelled, the result arrays are empty
+            boolean checkPerms = true;
+            if (permissions.length != NUM_PERMISSIONS || grantResults.length != NUM_PERMISSIONS) {
+                checkPerms = false;
+            }
 
-                for (int i = 0; i < grantResults.length && checkPerms; i++) {
-                    if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                        checkPerms = false;
-                    }
+            for (int i = 0; i < grantResults.length && checkPerms; i++) {
+                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                    checkPerms = false;
+                    break;
                 }
-                if (!checkPerms) {
-                    showFatalPermissionsError();
-                }
+            }
+            if (!checkPerms) {
+                showFatalPermissionsError();
             }
         }
     }
@@ -255,53 +248,47 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.romButton:
-                Intent intent = new Intent(this, FileBrowserActivity.class);
-                intent.putExtra(FileBrowserActivity.SHOW_UPS, false);
-                intent.putExtra(FileBrowserActivity.TARGET_TYPE, ROM_FORMATS);
-                intent.putExtra(FileBrowserActivity.TARGET_ICON, "\uD83C\uDFAE");
-                if (!"".equals(currentFolder)) {
-                    intent.putExtra(FileBrowserActivity.FOLDER, currentFolder);
-                }
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivityForResult(intent, FileBrowserActivity.BROWSE_FOR_ROM);
-                break;
-            case R.id.applyPatch:
-                String lowerName = romFile.toLowerCase();
-                if (lowerName.endsWith(".zip") || lowerName.endsWith(".7z") || lowerName.endsWith(".rar")) {
-                    DialogFragment dFragment = new DFragment();
-                    Bundle args = new Bundle();
-                    args.putInt(DFragment.ID, DIALOG_CONFIRM_PATCH);
-                    args.putInt(DFragment.ICON, android.R.drawable.ic_dialog_alert);
-                    args.putInt(DFragment.TITLE, R.string.warning);
-                    args.putString(DFragment.MESSAGE, getResources().getString(lowerName.endsWith(".zip") ? R.string.zipped_rom_ask : R.string.bad_compression_format));
-                    args.putInt(DFragment.BUTTONS, 2);
-                    dFragment.setArguments(args);
-                    dFragment.show(getSupportFragmentManager(), "");
-                } else {
-                    patch(true);
-                }
-                break;
-            case R.id.website:
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setData(Uri.parse("http://mother3vf.free.fr"));
-                startActivity(i);
-                break;
-            case R.id.opendoc:
-                Intent docIntent = new Intent(this, DocActivity.class);
-                docIntent.putExtra(DocActivity.DOC_FILE, docFile);
-                docIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivity(docIntent);
-                break;
-            case R.id.about:
+        if (view.getId() == R.id.romButton) {
+            Intent intent = new Intent(this, FileBrowserActivity.class);
+            intent.putExtra(FileBrowserActivity.SHOW_UPS, false);
+            intent.putExtra(FileBrowserActivity.TARGET_TYPE, ROM_FORMATS);
+            intent.putExtra(FileBrowserActivity.TARGET_ICON, "\uD83C\uDFAE");
+            if (!"".equals(currentFolder)) {
+                intent.putExtra(FileBrowserActivity.FOLDER, currentFolder);
+            }
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivityForResult(intent, FileBrowserActivity.BROWSE_FOR_ROM);
+        } else if (view.getId() == R.id.applyPatch) {
+            String lowerName = romFile.toLowerCase();
+            if (lowerName.endsWith(".zip") || lowerName.endsWith(".7z") || lowerName.endsWith(".rar")) {
                 DialogFragment dFragment = new DFragment();
                 Bundle args = new Bundle();
-                args.putString(DFragment.MESSAGE, getResources().getString(R.string.about));
-                args.putInt(DFragment.BUTTONS, 1);
+                args.putInt(DFragment.ID, DIALOG_CONFIRM_PATCH);
+                args.putInt(DFragment.ICON, android.R.drawable.ic_dialog_alert);
+                args.putInt(DFragment.TITLE, R.string.warning);
+                args.putString(DFragment.MESSAGE, getResources().getString(lowerName.endsWith(".zip") ? R.string.zipped_rom_ask : R.string.bad_compression_format));
+                args.putInt(DFragment.BUTTONS, 2);
                 dFragment.setArguments(args);
                 dFragment.show(getSupportFragmentManager(), "");
-                break;
+            } else {
+                patch(true);
+            }
+        } else if (view.getId() == R.id.website) {
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            i.setData(Uri.parse("http://mother3vf.free.fr"));
+            startActivity(i);
+        } else if (view.getId() == R.id.opendoc) {
+            Intent docIntent = new Intent(this, DocActivity.class);
+            docIntent.putExtra(DocActivity.DOC_FILE, docFile);
+            docIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(docIntent);
+        } else if (view.getId() == R.id.about) {
+            DialogFragment dFragment = new DFragment();
+            Bundle args = new Bundle();
+            args.putString(DFragment.MESSAGE, getResources().getString(R.string.about));
+            args.putInt(DFragment.BUTTONS, 1);
+            dFragment.setArguments(args);
+            dFragment.show(getSupportFragmentManager(), "");
         }
     }
 
@@ -328,7 +315,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 break;
             case DIALOG_OVERWRITE: // User has responded whether he wanted to unpatch the already patched ROM
                 if (response) {
-                    new File(romFile + ".original").delete();
                     patch(false);
                 } else {
                     showPatchingCanceled();

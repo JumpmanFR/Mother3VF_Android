@@ -21,10 +21,11 @@ import java.io.File;
 import java.io.IOException;
 
 public abstract class Patcher {
-    protected File patchFile = null;
-    protected File romFile = null;
-    protected File outputFile = null;
-    protected Context context = null;
+    protected Context context;
+
+    protected File patchFile;
+    protected File romFile;
+    protected File outputFile;
 
     public Patcher(Context c, File patch, File rom, File output) {
         context = c;

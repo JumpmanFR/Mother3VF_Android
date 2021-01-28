@@ -1,3 +1,5 @@
+package fr.mother3vf.mother3vf;
+
 /*******************************************************************************
  * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)
  * <p>
@@ -11,8 +13,6 @@
  * xperia64 - port to Android support
  * JumpmanFR - adaptation for MOTHER3VF
  ******************************************************************************/
-package fr.mother3vf.mother3vf;
-
 public class PatchingDialogModel {
     private static PatchingDialogModel instance;
 

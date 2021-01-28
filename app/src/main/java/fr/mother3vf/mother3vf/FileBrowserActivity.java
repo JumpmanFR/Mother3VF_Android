@@ -1,3 +1,28 @@
+package fr.mother3vf.mother3vf;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.text.TextUtils;
+import android.view.KeyEvent;
+import android.view.View;
+
+import java.io.File;
+import java.text.Collator;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Locale;
+import java.util.regex.Pattern;
+
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import fr.mother3vf.mother3vf.databinding.FileBrowserBinding;
+
 /*******************************************************************************
  * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)
  * <p>
@@ -11,32 +36,7 @@
  * xperia64 - port to Android support
  * JumpmanFR - adaptation for MOTHER3VF
  ******************************************************************************/
-package fr.mother3vf.mother3vf;
-
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
-import android.text.TextUtils;
-import android.view.KeyEvent;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-
-import java.io.File;
-import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Locale;
-import java.util.regex.Pattern;
-
-import fr.mother3vf.mother3vf.databinding.FilebrowserBinding;
-
-public class FileBrowserActivity extends Activity implements AdapterView.OnItemClickListener {
+public class FileBrowserActivity extends Activity implements FileBrowserAdapter.ItemClickListener {
     public static final String SHOW_UPS = "SHOW_UPS";
     public static final String TARGET_TYPE = "TARGET_TYPE";
     public static final String TARGET_ICON = "TARGET_ICON";
@@ -49,9 +49,8 @@ public class FileBrowserActivity extends Activity implements AdapterView.OnItemC
     private static final String CURRENT_FOLDER = "CURRENT_FOLDER";
     private static final String HISTORY = "HISTORY";
 
-    private FilebrowserBinding views;
+    private FileBrowserBinding views;
 
-    private ArrayList<String> itemsList;
     private ArrayList<String> filesList;
     private ArrayList<String> history;
     private String currentFolder;
@@ -63,7 +62,7 @@ public class FileBrowserActivity extends Activity implements AdapterView.OnItemC
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        views = FilebrowserBinding.inflate(getLayoutInflater());
+        views = FileBrowserBinding.inflate(getLayoutInflater());
         setContentView(views.getRoot());
 
         Bundle extras = getIntent().getExtras();
@@ -88,7 +87,7 @@ public class FileBrowserActivity extends Activity implements AdapterView.OnItemC
             getDir(folder, true);
         }
 
-        views.list.setOnItemClickListener(this);
+        views.list.addItemDecoration(new DividerItemDecoration(views.list.getContext(), DividerItemDecoration.VERTICAL));
     }
 
     @Override
@@ -118,7 +117,7 @@ public class FileBrowserActivity extends Activity implements AdapterView.OnItemC
     }
 
     private void getDir(String folderPath, boolean addToHistory) {
-        itemsList = new ArrayList<>();
+        ArrayList<String> itemsList = new ArrayList<>();
 
         filesList = new ArrayList<>();
         File folder = new File(folderPath);
@@ -158,29 +157,26 @@ public class FileBrowserActivity extends Activity implements AdapterView.OnItemC
                 currentFolder = folderPath;
 
 
-                for (int i = 0; i < files.length; i++) {
-                    File file = files[i];
-
-                    if (files[i].isFile()) {
+                for (File file : files) {
+                    if (file.isFile()) {
                         String fileIcon;
-                        if (Pattern.matches(targetType, files[i].getName())) {
+                        if (Pattern.matches(targetType, file.getName())) {
                             fileIcon = targetIcon;
-                        } else if (files[i].getName().endsWith(".zip")) {
+                        } else if (file.getName().endsWith(".zip")) {
                             fileIcon = (Build.VERSION.SDK_INT > 22 ? "\uD83D\uDDDC" : "\uD83D\uDCE6");
                         } else {
                             fileIcon = "\uD83D\uDCC4";
                         }
 
-                        int dotPosition = files[i].getName().lastIndexOf(".");
-                        String extension = "";
+                        int dotPosition = file.getName().lastIndexOf(".");
                         if (dotPosition != -1) {
-                            extension = (files[i].getName().substring(dotPosition)).toLowerCase(Locale.FRENCH);
+                            String extension = (file.getName().substring(dotPosition)).toLowerCase(Locale.FRENCH);
                             if (extension != null) {
                                 if ((".ups".equals(extension) && showUps) || (!showUps && !(".ups".equals(extension)))) {
                                     filesList.add(file.getPath());
                                     itemsList.add(fileIcon + " " + file.getName());
                                 }
-                            } else if (files[i].getName().endsWith("/")) {
+                            } else if (file.getName().endsWith("/")) {
                                 filesList.add(file.getPath() + "/");
                                 itemsList.add(fileIcon + " " + file.getName() + "/");
                             } else {
@@ -212,9 +208,10 @@ public class FileBrowserActivity extends Activity implements AdapterView.OnItemC
                 }
                 currentFolder = folderPath;
             }
-            ArrayAdapter<String> fileList = new ArrayAdapter<>(this, R.layout.row, itemsList);
-            views.list.setAdapter(fileList);
-            fileList.notifyDataSetChanged();
+            FileBrowserAdapter fileAdapter = new FileBrowserAdapter(this, itemsList);
+            views.list.setLayoutManager(new LinearLayoutManager(this));
+            views.list.setAdapter(fileAdapter);
+            fileAdapter.setClickListener(this);
             views.path.setText(folderPath);
             if (addToHistory) {
                 history.add(folderPath);
@@ -225,7 +222,7 @@ public class FileBrowserActivity extends Activity implements AdapterView.OnItemC
     }
 
     @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+    public void onItemClick(View view, int position) {
         File file = new File(filesList.get(position));
         if (file.isDirectory()) {
             if (file.canRead()) {
@@ -242,7 +239,7 @@ public class FileBrowserActivity extends Activity implements AdapterView.OnItemC
             } else {
                 System.out.println(file.getAbsolutePath());
 
-                new AlertDialog.Builder(this) // TODO
+                new AlertDialog.Builder(this)
                         .setIcon(R.mipmap.ic_launcher)
                         .setTitle("[" + file.getName() + "] " + getResources().getString(R.string.cantRead))
                         .setPositiveButton("OK",

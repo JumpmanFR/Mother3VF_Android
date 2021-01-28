@@ -1,3 +1,17 @@
+package fr.mother3vf.mother3vf;
+
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.os.Bundle;
+import android.text.method.LinkMovementMethod;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.core.text.HtmlCompat;
+import androidx.fragment.app.DialogFragment;
+
 /*******************************************************************************
  * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)
  * <p>
@@ -11,19 +25,6 @@
  * xperia64 - port to Android support
  * JumpmanFR - adaptation for MOTHER3VF
  ******************************************************************************/
-package fr.mother3vf.mother3vf;
-
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
-import android.os.Bundle;
-import android.text.method.LinkMovementMethod;
-import android.widget.TextView;
-
-import androidx.core.text.HtmlCompat;
-import androidx.fragment.app.DialogFragment;
-
 public class DFragment extends DialogFragment {
     public static final String ID = "ID";
     public static final String TITLE = "TITLE";
@@ -40,6 +41,7 @@ public class DFragment extends DialogFragment {
     private String dialogMessage;
     private boolean dismissed = false;
 
+    @NonNull
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             dialogMessage = savedInstanceState.getString(SAVED_MESSAGE);
@@ -86,12 +88,12 @@ public class DFragment extends DialogFragment {
     }
 
     @Override
-    public void onCancel(DialogInterface dialog) {
+    public void onCancel(@NonNull DialogInterface dialog) {
         ((MainActivity) getActivity()).onDialogResponse(getArguments().getInt(ID), false);
     }
 
     @Override
-    public void onSaveInstanceState(Bundle state) {
+    public void onSaveInstanceState(@NonNull Bundle state) {
         super.onSaveInstanceState(state);
         state.putString(SAVED_MESSAGE, dialogMessage);
         state.putBoolean(SAVED_DISMISSED, dismissed);
@@ -118,7 +120,7 @@ public class DFragment extends DialogFragment {
     }
 
     @Override
-    public void onDismiss(DialogInterface dialog) {
+    public void onDismiss(@NonNull DialogInterface dialog) {
         super.onDismiss(dialog);
         dismissed = true;
     }

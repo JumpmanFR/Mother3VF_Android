@@ -1,16 +1,3 @@
-/*******************************************************************************
- * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)
- * <p>
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the GNU Public License v3.0
- * which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/gpl.html
- * <p>
- * Contributors:
- * Paul Kratt - main MultiPatch application for macOS
- * xperia64 - port to Android support
- * JumpmanFR - adaptation for MOTHER3VF
- ******************************************************************************/
 package fr.mother3vf.mother3vf;
 
 import android.util.Log;
@@ -30,6 +17,19 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 
+/*******************************************************************************
+ * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)
+ * <p>
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/gpl.html
+ * <p>
+ * Contributors:
+ * Paul Kratt - main MultiPatch application for macOS
+ * xperia64 - port to Android support
+ * JumpmanFR - adaptation for MOTHER3VF
+ ******************************************************************************/
 public class FileUtils {
 
     public static String unzip(String fileString, String wantedFile, String bonusFile) throws IOException {
@@ -63,8 +63,7 @@ public class FileUtils {
                 if (ze.isDirectory()) {
                     continue;
                 }
-                FileOutputStream fout = new FileOutputStream(file);
-                try {
+                try (FileOutputStream fout = new FileOutputStream(file)) {
                     while ((count = zis.read(buffer)) > 0) {
                         if (count == 0) {
                             fout.close();
@@ -73,8 +72,6 @@ public class FileUtils {
                         }
                         fout.write(buffer, 0, count);
                     }
-                } finally {
-                    fout.close();
                 }
                 if (count == 0) {
                     throw new IOException();
@@ -96,7 +93,6 @@ public class FileUtils {
         try {
             URL u = new URL(url);
             URLConnection conn = u.openConnection();
-            int size = conn.getContentLength();
             String fileName = URLDecoder.decode(conn.getURL().getFile(), "UTF-8");
             fileName = fileName.substring(fileName.lastIndexOf('/'));
 
@@ -124,6 +120,7 @@ public class FileUtils {
             String[] fileNames = folder.list();
             for (String fileName : fileNames) {
                 if (fileName.matches(filter)) {
+                    //noinspection ResultOfMethodCallIgnored
                     new File(folder, fileName).delete();
                 }
             }

@@ -2,9 +2,9 @@
 
 <TextView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/rowtext"
+    xmlns:tools="http://schemas.android.com/tools"
     android:maxLines="1"
-    android:ellipsize="end"
+    android:ellipsize="middle"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="fill"
@@ -12,4 +12,8 @@
     android:padding="12dp"
     android:textSize="21sp"
     android:textColor="@android:color/black"
-    android:text="Test" />
+    android:text=""
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="@drawable/row_ripple"
+    tools:ignore="EllipsizeMaxLines" />

@@ -1,16 +1,3 @@
-/*******************************************************************************
- * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)
- * <p>
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the GNU Public License v3.0
- * which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/gpl.html
- * <p>
- * Contributors:
- * Paul Kratt - main MultiPatch application for macOS
- * xperia64 - port to Android support
- * JumpmanFR - adaptation for MOTHER3VF
- ******************************************************************************/
 package fr.mother3vf.mother3vf;
 
 import android.content.Context;
@@ -30,6 +17,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
+/*******************************************************************************
+ * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)
+ * <p>
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/gpl.html
+ * <p>
+ * Contributors:
+ * Paul Kratt - main MultiPatch application for macOS
+ * xperia64 - port to Android support
+ * JumpmanFR - adaptation for MOTHER3VF
+ ******************************************************************************/
 public class PatchFinder {
     private static ArrayList<String> EXCLUDE_LIST;
 
@@ -39,27 +39,15 @@ public class PatchFinder {
     private static final String PATCH_FILE_TO_FIND = "mother3vf.*\\.ups";
     private static final String DOC_FILE_TO_FIND = "doc_mother3vf.*\\.txt";
 
-    private static PatchFinder instance;
+    private final Context context;
 
-    private Context context;
-
-    public static PatchFinder getInstance() {
-        if (instance == null) {
-            instance = new PatchFinder();
-        }
-        return instance;
-    }
-
-    private PatchFinder() {
-        EXCLUDE_LIST = new ArrayList<String>();
+    public PatchFinder(Context ctx) {
+        this.context = ctx;
+        EXCLUDE_LIST = new ArrayList<>();
         EXCLUDE_LIST.add("/etc");
         EXCLUDE_LIST.add("/proc");
         EXCLUDE_LIST.add("/sys");
         EXCLUDE_LIST.add("/system");
-    }
-
-    public void setContext(Context context) {
-        this.context = context;
     }
 
     public String findAndSmartSelectInMainFolders(File romFolder, Context context) {
@@ -119,8 +107,8 @@ public class PatchFinder {
 
     /**
      * Searches the patch is the assets and extracts it from there
-     * @param context
-     * @return
+     * @param context the context, for various needs
+     * @return the patch as an absolute path, "" if not found
      */
     public String findInAssets(Context context) {
         AssetManager assetManager = context.getAssets();

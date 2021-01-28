@@ -1,3 +1,25 @@
+package fr.mother3vf.mother3vf;
+
+import android.annotation.SuppressLint;
+import android.graphics.Paint;
+import android.os.Bundle;
+import android.text.util.Linkify;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.regex.Pattern;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import fr.mother3vf.mother3vf.databinding.ActivityDocBinding;
+
 /*******************************************************************************
  * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)
  * <p>
@@ -11,26 +33,7 @@
  * xperia64 - port to Android support
  * JumpmanFR - adaptation for MOTHER3VF
  ******************************************************************************/
-package fr.mother3vf.mother3vf;
-
-import android.graphics.Paint;
-import android.os.Bundle;
-import android.text.util.Linkify;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.regex.Pattern;
-
-import androidx.appcompat.app.AppCompatActivity;
-import fr.mother3vf.mother3vf.databinding.ActivityDocBinding;
-
-public class DocActivity extends AppCompatActivity implements View.OnLayoutChangeListener, View.OnTouchListener {
+public class DocActivity extends AppCompatActivity implements View.OnLayoutChangeListener, View.OnTouchListener, View.OnClickListener {
 
     private static final int MIN_FONT_SIZE = 6;
     private static final int MAX_FONT_SIZE = 20;
@@ -47,6 +50,7 @@ public class DocActivity extends AppCompatActivity implements View.OnLayoutChang
 
     private String docText;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +61,7 @@ public class DocActivity extends AppCompatActivity implements View.OnLayoutChang
         getSupportActionBar().setDisplayShowTitleEnabled(true);
         getSupportActionBar().setIcon(R.drawable.ic_actionbar);
 
+        views.toolbar.setOnClickListener(this);
         views.toolbar.setOnTouchListener(this);
 
         if (savedInstanceState == null) {
@@ -70,7 +75,6 @@ public class DocActivity extends AppCompatActivity implements View.OnLayoutChang
         }
 
         paint = views.docTextView.getPaint();
-        //views.scrollView.
         views.docTextView.setVisibility(View.INVISIBLE);
         views.docTextView.addOnLayoutChangeListener(this);
         views.docTextView.setText(docText);
@@ -78,21 +82,20 @@ public class DocActivity extends AppCompatActivity implements View.OnLayoutChang
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle savedInstanceState) {
+    protected void onSaveInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putString(DOC_TEXT, docText);
     }
 
     /**
      * Gets the doc content from text file and return it as a string
-     * @param docFile
+     * @param docFile the text file as an absolute path
      * @return the doc content
      */
     private String loadContentFromFile(String docFile) {
         if (docFile != null && !"".equals(docFile)) {
-            BufferedReader reader = null;
             StringBuilder text = new StringBuilder();
-            try {
-                reader = new BufferedReader(new FileReader(docFile));
+            try (BufferedReader reader = new BufferedReader(new FileReader(docFile))) {
 
                 // do reading, usually loop until end of file reading
                 String mLine;
@@ -103,13 +106,6 @@ public class DocActivity extends AppCompatActivity implements View.OnLayoutChang
                 return text.toString();
             } catch (IOException e) {
                 e.printStackTrace();
-            } finally {
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (IOException e) {
-                    }
-                }
             }
         }
         return getString(R.string.doc_error);
@@ -146,17 +142,17 @@ public class DocActivity extends AppCompatActivity implements View.OnLayoutChang
     }
 
     private void updateMaxCharsPerLine() {
-        maxCharsPerLine = Arrays.stream(docText.split("\n")).max(new Comparator<String>() {
+        maxCharsPerLine = Collections.max(Arrays.asList(docText.split("\n")), new Comparator<String>() {
             @Override
             public int compare(String str1, String str2) {
                 return str1.length() - str2.length();
-            }}).orElse("").length() + 1;
+            }}).length() + 1;
     }
 
     /**
      * Finds the biggest font size for the doc (monospace, manual line breaks) before the text lines get cut in two
-     * @param minSize
-     * @param maxSize
+     * @param minSize minimum acceptable font size
+     * @param maxSize maximum acceptable font size
      * @return that ideal font size
      */
     private int findIdealFontSize(int minSize, int maxSize) {
@@ -173,7 +169,7 @@ public class DocActivity extends AppCompatActivity implements View.OnLayoutChang
 
     /**
      * Tells whether the text lines in the doc fit in the view without getting cut in two, for a specific font size
-     * @param fontSize
+     * @param fontSize the font size to test
      * @return true if it does, false otherwise
      */
     private boolean isFontSizeFitting(int fontSize) {
@@ -187,10 +183,11 @@ public class DocActivity extends AppCompatActivity implements View.OnLayoutChang
 
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
-        /*Log.v("test", "View: " + view);
-        Log.v("test", "On: " + motionEvent.getX() + " /  " + motionEvent.getY());*/
-        views.scrollView.smoothScrollTo(0,0);
-        return false;
+        return view.performClick();
     }
 
+    @Override
+    public void onClick(View view) {
+        views.scrollView.smoothScrollTo(0,0);
+    }
 }

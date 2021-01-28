@@ -21,7 +21,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 public class Utils {
-    private static int BUFFER_SIZE = 10240; // 10 Kb
+    private static final int BUFFER_SIZE = 10240; // 10 Kb
 
     public static void copy(InputStream from, OutputStream to, long size) throws IOException {
         byte[] buffer = new byte[BUFFER_SIZE];
