@@ -21,9 +21,8 @@ import fr.mother3vf.mother3vf.patcher.UPS;
  * http://www.gnu.org/licenses/gpl.html
  * <p>
  * Contributors:
- * Paul Kratt - main MultiPatch application for macOS
- * xperia64 - port to Android support
- * JumpmanFR - adaptation for MOTHER3VF
+ * Paul Kratt - MultiPatch app for macOS
+ * JumpmanFR - adaptation for MOTHER 3 VF
  ******************************************************************************/
 public class PatchingTask extends IntentService {
     public static final String ACTION_PATCH = "fr.mother3vf.mother3vf.action.ACTION_PATCH";
