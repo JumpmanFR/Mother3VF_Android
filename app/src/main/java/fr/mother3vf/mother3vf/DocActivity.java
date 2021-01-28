@@ -13,21 +13,12 @@
  ******************************************************************************/
 package fr.mother3vf.mother3vf;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
 import android.text.util.Linkify;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
-import androidx.appcompat.widget.Toolbar;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -79,6 +70,7 @@ public class DocActivity extends AppCompatActivity implements View.OnLayoutChang
         }
 
         paint = views.docTextView.getPaint();
+        //views.scrollView.
         views.docTextView.setVisibility(View.INVISIBLE);
         views.docTextView.addOnLayoutChangeListener(this);
         views.docTextView.setText(docText);

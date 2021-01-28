@@ -53,6 +53,7 @@
                     android:layout_alignBottom="@+id/romButton"
                     android:layout_alignTop="@+id/romButton"
                     android:layout_toRightOf="@id/romButton"
+                    android:layout_marginLeft="4dp"
                     android:ellipsize="end"
                     android:gravity="center_vertical"
                     android:maxLines="2" />

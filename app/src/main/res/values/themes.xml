@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="MainTheme" parent="@android:style/Theme.Holo.Light">
+    <style name="MainTheme" parent="@android:style/Theme.Material.Light">
+        <item name="android:actionBarTheme">@style/ActionBarTheme</item>
+    </style>
+
+    <style name="ActionBarTheme" parent="@android:style/Theme.Holo.Light">
+        <item name="android:icon">@drawable/ic_actionbar</item>
     </style>
 
     <style name="Theme.Transparent" parent="MainTheme">

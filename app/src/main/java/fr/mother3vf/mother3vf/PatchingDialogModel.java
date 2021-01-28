@@ -1,10 +1,17 @@
+/*******************************************************************************
+ * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)
+ * <p>
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/gpl.html
+ * <p>
+ * Contributors:
+ * Paul Kratt - main MultiPatch application for macOS
+ * xperia64 - port to Android support
+ * JumpmanFR - adaptation for MOTHER3VF
+ ******************************************************************************/
 package fr.mother3vf.mother3vf;
-
-import android.os.Bundle;
-
-/**
- * Created by simon on 15/05/2017.
- */
 
 public class PatchingDialogModel {
     private static PatchingDialogModel instance;

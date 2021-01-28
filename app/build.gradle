@@ -4,7 +4,7 @@ android {
     compileSdkVersion 30
     defaultConfig {
         applicationId "fr.mother3vf.mother3vf"
-        minSdkVersion 14
+        minSdkVersion 21
         targetSdkVersion 30
     }
     sourceSets {

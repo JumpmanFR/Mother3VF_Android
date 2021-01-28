@@ -17,8 +17,6 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.ActionBar;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -36,6 +34,8 @@ import java.io.File;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import fr.mother3vf.mother3vf.databinding.MainBinding;
 

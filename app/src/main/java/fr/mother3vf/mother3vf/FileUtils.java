@@ -13,7 +13,6 @@
  ******************************************************************************/
 package fr.mother3vf.mother3vf;
 
-import android.os.Environment;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
@@ -27,7 +26,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 

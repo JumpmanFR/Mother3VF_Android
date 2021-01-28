@@ -18,11 +18,11 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import androidx.fragment.app.DialogFragment;
 import android.text.method.LinkMovementMethod;
 import android.widget.TextView;
 
 import androidx.core.text.HtmlCompat;
+import androidx.fragment.app.DialogFragment;
 
 public class DFragment extends DialogFragment {
     public static final String ID = "ID";

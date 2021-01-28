@@ -13,6 +13,19 @@
  ******************************************************************************/
 package fr.mother3vf.mother3vf;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.text.TextUtils;
+import android.view.KeyEvent;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+
 import java.io.File;
 import java.text.Collator;
 import java.util.ArrayList;
@@ -21,23 +34,9 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-import android.app.ActionBar;
-import android.app.ListActivity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.graphics.Paint;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
-import android.text.TextUtils;
-import android.view.KeyEvent;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
+import fr.mother3vf.mother3vf.databinding.FilebrowserBinding;
 
-public class FileBrowserActivity extends ListActivity {
+public class FileBrowserActivity extends Activity implements AdapterView.OnItemClickListener {
     public static final String SHOW_UPS = "SHOW_UPS";
     public static final String TARGET_TYPE = "TARGET_TYPE";
     public static final String TARGET_ICON = "TARGET_ICON";
@@ -49,6 +48,8 @@ public class FileBrowserActivity extends ListActivity {
 
     private static final String CURRENT_FOLDER = "CURRENT_FOLDER";
     private static final String HISTORY = "HISTORY";
+
+    private FilebrowserBinding views;
 
     private ArrayList<String> itemsList;
     private ArrayList<String> filesList;
@@ -62,7 +63,8 @@ public class FileBrowserActivity extends ListActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.filebrowser);
+        views = FilebrowserBinding.inflate(getLayoutInflater());
+        setContentView(views.getRoot());
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -85,6 +87,8 @@ public class FileBrowserActivity extends ListActivity {
             }
             getDir(folder, true);
         }
+
+        views.list.setOnItemClickListener(this);
     }
 
     @Override
@@ -209,9 +213,9 @@ public class FileBrowserActivity extends ListActivity {
                 currentFolder = folderPath;
             }
             ArrayAdapter<String> fileList = new ArrayAdapter<>(this, R.layout.row, itemsList);
-            setListAdapter(fileList);
-            getListView().setFastScrollEnabled(true);
-            ((TextView) findViewById(R.id.path)).setText(folderPath);
+            views.list.setAdapter(fileList);
+            fileList.notifyDataSetChanged();
+            views.path.setText(folderPath);
             if (addToHistory) {
                 history.add(folderPath);
             }
@@ -221,7 +225,7 @@ public class FileBrowserActivity extends ListActivity {
     }
 
     @Override
-    protected void onListItemClick(ListView l, View v, final int position, long id) {
+    public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
         File file = new File(filesList.get(position));
         if (file.isDirectory()) {
             if (file.canRead()) {
@@ -264,7 +268,6 @@ public class FileBrowserActivity extends ListActivity {
     private boolean canReadFile(String file) {
         return new File(file).exists() && new File(file).canRead();
     }
-
 }
 
 
