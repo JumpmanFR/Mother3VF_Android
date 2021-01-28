@@ -19,10 +19,11 @@ public class PatchingDialogModel {
     }
 
     public static final int STEP_NONE = -1;
-    public static final int STEP_DONE = 0;
+    public static final int STEP_FAILED = 0;
     public static final int STEP_RUNNING = 1;
     public static final int STEP_BROWSE = 2;
-    public static final int STEP_SUCCESS = 3;
+    public static final int STEP_ALREADY = 3;
+    public static final int STEP_SUCCESS = 4;
 
     private int resultCode = STEP_NONE;
     private String message;

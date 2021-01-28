@@ -46,7 +46,6 @@
                     android:text="@string/browse"
                     android:focusable="true"/>
 
-
                 <TextView
                     android:id="@+id/romText"
                     android:layout_width="wrap_content"

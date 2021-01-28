@@ -19,7 +19,7 @@
     <string name="patch">Appliquer le patch de traduction</string>
     <string name="bkup_rom">Garder une copie de la ROM d’origine</string>
     <string name="warning">Attention</string>
-    <string name="already_exists">Un fichier de sortie est déjà présent. Voulez-vous l’écraser ?\n(Si vous avez déjà patché votre ROM, elle reviendra à son état initial.)</string>
+    <string name="already_exists">Votre ROM a déjà été traduite. Voulez-vous la remettre dans sa langue d’origine ?</string>
     <string name="bad_compression_format">Le fichier sur lequel vous êtes sur le point d’appliquer le patch ressemble à une archive compressée d’un type qui n’est pas pris en charge.\nIl est peut-être nécessaire d’extraire d’abord son contenu à l’aide d’un outil dédié.\nAppliquer le patch malgré tout ?</string>
     <string name="zipped_rom_ask">Le fichier que vous avez sélectionné semble être une archive zip compressée.\nL’application va d’abord décompresser son contenu avant d’y appliquer le patch.</string>
     <string name="nopatch">Application du patch annulée.</string>
@@ -35,15 +35,19 @@
     <string name="rom_not_found">La ROM que vous avez spécifiée est introuvable.</string>
     <string name="rom_zip_error">Une erreur s’est produite lors de la décompression de l’archive zip contenant la ROM.\nEssayez de la décompresser à l’aide d’un outil dédié.</string>
     <string name="rom_zip_not_found">Aucune ROM n’a été trouvée dans l’archive zip que vous avez spécifiée.</string>
-    <string name="about"><![CDATA[Une traduction française de MOTHER 3 gratuite, entièrement réalisée par des fans.<br/><br/>Par JumpmanFR, Anthiflo, Lostindark et Krummi.<br/><br/>App conçue par JumpmanFR et Anthiflo.<br/><br/><a href="http://mother3vf.free.fr">Site Web</a>]]></string>
+    <string name="about"><![CDATA[Une traduction française de MOTHER 3 gratuite, entièrement réalisée par des fans.<br/><br/>Par JumpmanFR, Anthiflo, Zeilk, Lostindark et Krummi.<br/><br/>App conçue par JumpmanFR et Anthiflo.<br/><br/><a href="http://mother3vf.free.fr">Site Web</a>]]></string>
     <string name="cantwrite">Impossible d’accéder au fichier de sortie. Si vous utilisez Android KitKat ou Lollipop, déplacez votre ROM sur votre stockage interne.</string>
     <!-- UPS Errors -->
-    <string name="upsNegativeOne">Erreur UPS : Impossible d’accéder au fichier d’entrée.</string>
-    <string name="upsNegativeTwo">Erreur UPS : Impossible d’accéder au fichier de sortie.</string>
-    <string name="upsNegativeThree">Erreur UPS : Impossible d’accéder au fichier de patch.</string>
-    <string name="upsNegativeFour">Erreur UPS : Le fichier de patch n’est pas valide (taille inférieure à celle attendue).</string>
-    <string name="upsNegativeFive">Erreur UPS : La somme de contrôle CRC32 du patch n’est pas valide.</string>
-    <string name="upsNegativeSix">Erreur UPS : L’en-tête du patch n’est pas valide.</string>
-    <string name="upsNegativeSeven">Erreur UPS : Le fichier que vous avez sélectionné n’est pas celui attendu.\nVous devez fournir une ROM japonaise de MOTHER 3 d’origine, non modifiée.</string>
-    <string name="upsDefault">Erreur UPS inconnue : </string>
+    <string name="upsNegativeOne">Erreur UPS : Impossible d’accéder au fichier d’entrée.</string>
+    <string name="upsNegativeTwo">Erreur UPS : Impossible d’accéder au fichier de sortie.</string>
+    <string name="upsNegativeThree">Erreur UPS : Impossible d’accéder au fichier de patch.</string>
+    <string name="upsNegativeFour">Erreur UPS : Le fichier de patch n’est pas valide (taille inférieure à celle attendue).</string>
+    <string name="upsNegativeFive">Erreur UPS : La somme de contrôle CRC32 du patch n’est pas valide.</string>
+    <string name="upsNegativeSix">Erreur UPS : L’en-tête du patch n’est pas valide.</string>
+    <string name="upsNegativeSeven">Erreur UPS : Le fichier que vous avez sélectionné n’est pas celui attendu.\nVous devez fournir une ROM japonaise de MOTHER 3 d’origine, non modifiée.</string>
+    <string name="upsDefault">Erreur UPS inconnue : </string>
+    <string name="patching_error_incorrect_rom">Erreur lors de l’application du patch : la ROM que vous avez spécifiée est incorrecte.</string>
+    <string name="patching_error_not_ups">Erreur lors de l’application du patch : le fichier de patch n’est pas valide.</string>
+    <string name="patching_error_corrupted">Erreur lors de l’application du patch : le fichier de patch est corrompu.</string>
+    <string name="patching_error_wrong_checksum_after">Erreur lors de l’application du patch : l’opération s’est terminée mais la vérification de la ROM a abouti à un échec.</string>
 </resources>

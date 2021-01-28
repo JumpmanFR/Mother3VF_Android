@@ -8,22 +8,21 @@
  * <p>
  * Contributors:
  * Paul Kratt - main MultiPatch application for macOS
- * byuu - UPS patcher
  * xperia64 - port to Android support
  * JumpmanFR - adaptation for MOTHER3VF
  ******************************************************************************/
 package fr.mother3vf.mother3vf;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.text.Html;
+import androidx.fragment.app.DialogFragment;
 import android.text.method.LinkMovementMethod;
 import android.widget.TextView;
+
+import androidx.core.text.HtmlCompat;
 
 public class DFragment extends DialogFragment {
     public static final String ID = "ID";
@@ -50,7 +49,7 @@ public class DFragment extends DialogFragment {
             dialogMessage = getArguments().getString(MESSAGE);
         }
 
-        if (getArguments().getBoolean(PROGRESS, false)) { // if (PROGRESS est à true sachant que sa valeur par défaut est false)
+        if (getArguments().getBoolean(PROGRESS, false)) { // if (PROGRESS is true considering his default value is false)
             ProgressDialog pd = ProgressDialog.show(getActivity(), getResources().getString(getArguments().getInt(TITLE)),
                     dialogMessage, true);
             pd.setIcon(getArguments().getInt(ICON, R.mipmap.ic_launcher));
@@ -59,7 +58,7 @@ public class DFragment extends DialogFragment {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                     .setIcon(getArguments().getInt(ICON, R.mipmap.ic_launcher))
                     .setTitle(getArguments().getInt(TITLE, R.string.app_name_dialogs))
-                    .setMessage(Html.fromHtml(dialogMessage));
+                    .setMessage(HtmlCompat.fromHtml(dialogMessage,HtmlCompat.FROM_HTML_MODE_LEGACY));
             if (getArguments().getInt(BUTTONS) > 0) { // Positive button
                 builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
@@ -98,6 +97,10 @@ public class DFragment extends DialogFragment {
         state.putBoolean(SAVED_DISMISSED, dismissed);
     }
 
+    /**
+     * Keep the same dialog, update the message (for steps on a long process)
+     * @param text the message
+     */
     public void updateMessage(String text) {
         dialogMessage = text;
         refreshView();
@@ -118,15 +121,5 @@ public class DFragment extends DialogFragment {
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
         dismissed = true;
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();;
     }
 }

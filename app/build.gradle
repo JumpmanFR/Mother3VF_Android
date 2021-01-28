@@ -1,12 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 30
     defaultConfig {
         applicationId "fr.mother3vf.mother3vf"
         minSdkVersion 14
-        targetSdkVersion 23
+        targetSdkVersion 30
     }
     sourceSets {
         main {
@@ -25,9 +24,15 @@ android {
         debug {
         }
     }
+    buildFeatures {
+        viewBinding true
+    }
+
 }
 
 dependencies {
-    compile 'com.google.guava:guava:18.0'
-    compile 'com.android.support:appcompat-v7:23.0.0'
+    implementation 'com.google.guava:guava:18.0'
+    implementation 'androidx.core:core:1.0.1'
+    implementation "androidx.appcompat:appcompat:1.2.0"
+    implementation 'commons-io:commons-io:2.5' // 2.6 crashes the application on Android below 8, because java.nio.file is not available in these versions
 }

@@ -8,7 +8,6 @@
  * <p>
  * Contributors:
  * Paul Kratt - main MultiPatch application for macOS
- * byuu - UPS patcher
  * xperia64 - port to Android support
  * JumpmanFR - adaptation for MOTHER3VF
  ******************************************************************************/
@@ -21,7 +20,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 

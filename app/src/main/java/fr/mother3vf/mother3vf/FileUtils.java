@@ -8,7 +8,6 @@
  * <p>
  * Contributors:
  * Paul Kratt - main MultiPatch application for macOS
- * byuu - UPS patcher
  * xperia64 - port to Android support
  * JumpmanFR - adaptation for MOTHER3VF
  ******************************************************************************/
@@ -82,11 +81,6 @@ public class FileUtils {
                 if (count == 0) {
                     throw new IOException();
                 }
-            /* if time should be restored as well
-            long time = ze.getTime();
-            if (time > 0)
-                file.setLastModified(time);
-            */
             }
         } finally {
             bis.close();

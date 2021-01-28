@@ -8,7 +8,6 @@
  * <p>
  * Contributors:
  * Paul Kratt - main MultiPatch application for macOS
- * byuu - UPS patcher
  * xperia64 - port to Android support
  * JumpmanFR - adaptation for MOTHER3VF
  ******************************************************************************/
@@ -144,8 +143,6 @@ public class FileBrowserActivity extends ListActivity {
 
                 if (!folderPath.equals("/") && !(folderPath.equals("/storage/") && !(new File(File.separator).canRead()))) {
                     itemsList.add("⤴️");
-                    // Thank you Marshmallow.
-                    // Disallowing access to /storage/emulated has now prevent billions of hacking attempts daily.
                     if (new File(folder.getParent()).canRead()) {
                         filesList.add(folder.getParent());
                     } else if (new File("/").canRead()) {

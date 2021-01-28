@@ -8,7 +8,6 @@
  * <p>
  * Contributors:
  * Paul Kratt - main MultiPatch application for macOS
- * byuu - UPS patcher
  * xperia64 - port to Android support
  * JumpmanFR - adaptation for MOTHER3VF
  ******************************************************************************/
@@ -18,63 +17,58 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.ActionBar;
-import android.app.Activity;
-import android.app.DialogFragment;
-import android.app.Fragment;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
-import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
 import android.os.Vibrator;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.util.Base64;
-import android.util.Log;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
-import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.File;
-import java.nio.charset.Charset;
 
-public class MainActivity extends Activity implements View.OnClickListener {
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentActivity;
+import fr.mother3vf.mother3vf.databinding.MainBinding;
 
-    public static native int upsPatchRom(String romPath, String patchPath, String outputFile, int jignoreChecksum);
-    public static native String getKey();
+public class MainActivity extends FragmentActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
     public static final String ROM_FORMATS = ".*\\.(gba|agb|bin|jgc|rom)";
 
     private static final String CURRENT_FOLDER = "CURRENT_FOLDER";
     private static final String ROM_FILE = "ROM_FILE";
+    private static final String PATCH_FILE = "PATCH_FILE";
     private static final String DOC_FILE = "DOC_FILE";
+    private static final String DO_BACKUP_ROM = "DO_BACKUP_ROM";
 
     public static final int DIALOG_PERMISSIONS = 101;
     public static final int DIALOG_OVERWRITE = 102;
     public static final int DIALOG_ERROR_PERMISSIONS = 103;
     public static final int DIALOG_BROWSE_PATCH = 104;
     public static final int DIALOG_CONFIRM_PATCH = 105;
-    public static final int DIALOG_PATCH_DONE = 106;
+    public static final int DIALOG_PATCH_FAILED = 106;
     public static final int DIALOG_PATCH_SUCCESS = 107;
 
     private static final int PERMISSION_REQUEST = 178;
     private static final int NUM_PERMISSIONS = 2;
 
+    private MainBinding views;
+
     private DFragment progressDialog;
 
     private String currentFolder = "";
     private String romFile = "";
+    private String patchFile = "";
     private String docFile = "";
+    private boolean doBackupRom = false;
 
     class PatchingTaskReceiver extends BroadcastReceiver {
         @Override
@@ -85,26 +79,21 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private PatchingTaskReceiver patchingTaskReceiver;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        views = MainBinding.inflate(getLayoutInflater());
+        setContentView(views.getRoot());
 
         ActionBar actionBar = getActionBar();
         actionBar.setTitle(R.string.main_view_title);
 
-        try {
-            System.loadLibrary("upspatcher");
-        } catch (UnsatisfiedLinkError e) {
-            Log.e("Bad:", "Cannot grab upspatcher!");
-        }
-
-        findViewById(R.id.romButton).setOnClickListener(this);
-        findViewById(R.id.applyPatch).setOnClickListener(this);
-        findViewById(R.id.website).setOnClickListener(this);
-        findViewById(R.id.opendoc).setOnClickListener(this);
-        findViewById(R.id.about).setOnClickListener(this);
+        views.romButton.setOnClickListener(this);
+        views.applyPatch.setOnClickListener(this);
+        views.website.setOnClickListener(this);
+        views.opendoc.setOnClickListener(this);
+        views.about.setOnClickListener(this);
+        views.backupCheckbox.setOnCheckedChangeListener(this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions();
@@ -112,10 +101,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         if (savedInstanceState != null) {
             romFile = savedInstanceState.getString(ROM_FILE);
+            patchFile = savedInstanceState.getString(PATCH_FILE);
             currentFolder = savedInstanceState.getString(CURRENT_FOLDER);
             docFile = savedInstanceState.getString(DOC_FILE);
-            updateViews();
+            doBackupRom = savedInstanceState.getBoolean(DO_BACKUP_ROM);
         }
+        updateViews();
+
         patchingTaskReceiver = new PatchingTaskReceiver();
     }
 
@@ -138,19 +130,19 @@ public class MainActivity extends Activity implements View.OnClickListener {
     protected void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
         state.putString(ROM_FILE, romFile);
+        state.putString(PATCH_FILE, patchFile);
         state.putString(CURRENT_FOLDER, currentFolder);
         state.putString(DOC_FILE, docFile);
+        state.putBoolean(DO_BACKUP_ROM, doBackupRom);
     }
 
     @Override
     public void onAttachFragment(Fragment fragment) {
         super.onAttachFragment(fragment);
-        //if (DFragment.TAG_PROGRESS.equals(fragment.getTag())) {
-            progressDialog = (DFragment) fragment;
-        //}
+        progressDialog = (DFragment) fragment;
     }
 
-    public void requestPermissions() {
+    private void requestPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
                 || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
 
@@ -167,15 +159,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 args.putInt(DFragment.BUTTONS, 2);
                 dFragment.setArguments(args);
                 dFragment.setCancelable(false);
-                dFragment.show(getFragmentManager(), "");
+                dFragment.show(getSupportFragmentManager(), "");
 
             } else {
-                // No explanation needed, we can request the permission.
                 actuallyRequestPermissions();
-
-                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-                // app-defined int constant. The callback method gets the
-                // result of the request.
             }
         }
     }
@@ -192,71 +179,42 @@ public class MainActivity extends Activity implements View.OnClickListener {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case PERMISSION_REQUEST: {
-                // If request is cancelled, the result arrays are empty.
-                boolean good = true;
+                // If request is cancelled, the result arrays are empty
+                boolean checkPerms = true;
                 if (permissions.length != NUM_PERMISSIONS || grantResults.length != NUM_PERMISSIONS) {
-                    good = false;
+                    checkPerms = false;
                 }
 
-                for (int i = 0; i < grantResults.length && good; i++) {
+                for (int i = 0; i < grantResults.length && checkPerms; i++) {
                     if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                        good = false;
+                        checkPerms = false;
                     }
                 }
-                if (!good) {
+                if (!checkPerms) {
                     showFatalPermissionsError();
-                } else {
-                    /*if (!Environment.getExternalStorageDirectory().canRead()) {
-                        // Buggy emulator? Try restarting the app
-                        AlarmManager alm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-                        alm.set(AlarmManager.RTC, System.currentTimeMillis() + 1000, PendingIntent.getActivity(this, 237462, new Intent(this, MainActivity.class), Intent.FLAG_ACTIVITY_NEW_TASK));
-                        System.exit(0);
-                    }*/
                 }
-                return;
             }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
         }
     }
 
-    private void patchCheck() {
-        // Just try to interpret the following if statement. I dare you.
-        if (new File(romFile + ".original").exists()) {
-            DialogFragment dFragment = new DFragment();
-            Bundle args = new Bundle();
-            args.putInt(DFragment.TITLE, R.string.warning);
-            args.putInt(DFragment.ID, DIALOG_OVERWRITE);
-            args.putInt(DFragment.ICON, android.R.drawable.ic_dialog_alert);
-            args.putString(DFragment.MESSAGE, getResources().getString(R.string.already_exists));
-            args.putInt(DFragment.BUTTONS, 2);
-            dFragment.setArguments(args);
-            dFragment.show(getFragmentManager(), "");
-        } else {
-            patch();
-        }
-
-    }
-
-    public void patch() {
-        patch(null);
-    }
-
-    public void patch(String patchFile) {
-        final CheckBox backupCheckbox = (CheckBox) findViewById(R.id.backupCheckbox);
+    private void patch(boolean checkAlreadyPatched) {
         Intent i = new Intent(this, PatchingTask.class);
         i.setAction(PatchingTask.ACTION_PATCH);
         i.putExtra(PatchingTask.ROM_FILE, romFile);
-        if (patchFile != null) {
+        if (patchFile != null && !"".equals(patchFile)) {
             i.putExtra(PatchingTask.PATCH_FILE, patchFile);
         }
-        i.putExtra(PatchingTask.BACKUP, backupCheckbox.isChecked());
-        //i.putExtra(PatchingTask.RECEIVER, receiver);
+        i.putExtra(PatchingTask.CHECK_ALREADY_PATCHED, checkAlreadyPatched);
+        i.putExtra(PatchingTask.BACKUP, doBackupRom);
         startService(i);
     }
 
+    /**
+     * Processes result from FileBrowserActivity
+     */
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
             currentFolder = extras.getString((FileBrowserActivity.FOLDER));
@@ -266,7 +224,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         romFile = extras.getString(FileBrowserActivity.FILE);
                         break;
                     case FileBrowserActivity.BROWSE_FOR_PATCH:
-                        patch(extras.getString(FileBrowserActivity.FILE));
+                        patchFile = extras.getString(FileBrowserActivity.FILE);
+                        patch(true);
                         break;
                 }
             }
@@ -277,16 +236,20 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private void updateViews() {
-        TextView romText = (TextView) findViewById(R.id.romText);
+        TextView romText = views.romText;
         boolean hasRom = !"".equals(romFile);
-        findViewById(R.id.applyPatch).setEnabled(hasRom);
-        findViewById(R.id.applyPatch).setFocusable(hasRom);
+        views.applyPatch.setEnabled(hasRom);
+        views.applyPatch.setFocusable(hasRom);
         boolean hasDoc = !"".equals(docFile);
-        findViewById(R.id.opendoc).setVisibility(hasDoc ? View.VISIBLE : View.INVISIBLE);
-        findViewById(R.id.website).setVisibility(hasDoc ? View.INVISIBLE : View.VISIBLE);
+        //hasDoc = true;
+        views.opendoc.setVisibility(hasDoc ? View.VISIBLE : View.INVISIBLE);
+        views.website.setVisibility(hasDoc ? View.INVISIBLE : View.VISIBLE);
         if (romFile.lastIndexOf("/") > -1) {
             romText.setText(romFile.substring(romFile.lastIndexOf("/") + 1));
+        } else {
+            romText.setText(romFile);
         }
+        views.backupCheckbox.setChecked(doBackupRom);
         romText.postInvalidate();
     }
 
@@ -315,9 +278,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     args.putString(DFragment.MESSAGE, getResources().getString(lowerName.endsWith(".zip") ? R.string.zipped_rom_ask : R.string.bad_compression_format));
                     args.putInt(DFragment.BUTTONS, 2);
                     dFragment.setArguments(args);
-                    dFragment.show(getFragmentManager(), "");
+                    dFragment.show(getSupportFragmentManager(), "");
                 } else {
-                    patchCheck();
+                    patch(true);
                 }
                 break;
             case R.id.website:
@@ -337,39 +300,51 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 args.putString(DFragment.MESSAGE, getResources().getString(R.string.about));
                 args.putInt(DFragment.BUTTONS, 1);
                 dFragment.setArguments(args);
-                dFragment.show(getFragmentManager(), "");
+                dFragment.show(getSupportFragmentManager(), "");
                 break;
         }
     }
 
+    @Override
+    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+        if (compoundButton.getId() == R.id.backupCheckbox) {
+            doBackupRom = b;
+        }
+    }
+
+    /**
+     * Processes the user response on a dialog
+     * @param dialogType what the dialog was
+     * @param response what the user responded
+     */
     protected void onDialogResponse(int dialogType, boolean response) {
         switch(dialogType) {
-            case DIALOG_CONFIRM_PATCH:
+            case DIALOG_CONFIRM_PATCH:  // User has responded he still wanted to apply the patch even though something unexpected had occurred
                 if (response) {
-                    patchCheck();
+                    patch(true);
                 } else {
                     showPatchingCanceled();
                 }
                 break;
-            case DIALOG_OVERWRITE:
+            case DIALOG_OVERWRITE: // User has responded whether he wanted to unpatch the already patched ROM
                 if (response) {
                     new File(romFile + ".original").delete();
-                    patch();
+                    patch(false);
                 } else {
                     showPatchingCanceled();
                 }
                 break;
-            case DIALOG_PERMISSIONS:
+            case DIALOG_PERMISSIONS: // User has responded to permission request
                 if (response) {
                     actuallyRequestPermissions();
                 } else {
                     showFatalPermissionsError();
                 }
                 break;
-            case DIALOG_ERROR_PERMISSIONS:
+            case DIALOG_ERROR_PERMISSIONS: // User has closed the permission error alert
                 finish();
                 break;
-            case DIALOG_BROWSE_PATCH:
+            case DIALOG_BROWSE_PATCH: // User has responded whether he wanted to browse for the patching file after the app couldn’t find it
                 if (response) {
                     Intent intent = new Intent(this, FileBrowserActivity.class);
                     intent.putExtra(FileBrowserActivity.SHOW_UPS, true);
@@ -384,10 +359,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     showPatchingCanceled();
                 }
                 break;
-            case DIALOG_PATCH_DONE:
+            case DIALOG_PATCH_FAILED: // User has closed the alert after a failed patching process
                 PatchingDialogModel.getInstance().reset();
                 break;
-            case DIALOG_PATCH_SUCCESS:
+            case DIALOG_PATCH_SUCCESS: // User has closed the alert after a successful patching process
                 PatchingDialogModel.getInstance().reset();
                 if (!"".equals(docFile)) {
                     Intent docIntent = new Intent(this, DocActivity.class);
@@ -395,6 +370,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     docIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     startActivity(docIntent);
                 }
+                romFile = "";
+                patchFile = "";
+                updateViews();
                 break;
         }
     }
@@ -408,7 +386,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         args.putInt(DFragment.BUTTONS, 1);
         dFragment.setArguments(args);
         dFragment.setCancelable(false);
-        dFragment.show(getFragmentManager(), "");
+        dFragment.show(getSupportFragmentManager(), "");
     }
 
     private void showPatchingCanceled() {
@@ -418,25 +396,29 @@ public class MainActivity extends Activity implements View.OnClickListener {
         args.putString(DFragment.MESSAGE, getResources().getString(R.string.nopatch));
         args.putInt(DFragment.BUTTONS, 1);
         dFragment.setArguments(args);
-        dFragment.show(getFragmentManager(), "");
+        dFragment.show(getSupportFragmentManager(), "");
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        findViewById(R.id.romButton).setOnClickListener(null);
-        findViewById(R.id.applyPatch).setOnClickListener(null);
-        findViewById(R.id.website).setOnClickListener(null);
-        findViewById(R.id.opendoc).setOnClickListener(null);
-        findViewById(R.id.about).setOnClickListener(null);
+        views.romButton.setOnClickListener(null);
+        views.applyPatch.setOnClickListener(null);
+        views.website.setOnClickListener(null);
+        views.opendoc.setOnClickListener(null);
+        views.about.setOnClickListener(null);
+        views.backupCheckbox.setOnCheckedChangeListener(null);
+        views = null;
     }
 
-
+    /**
+     * Generates message dialog depending on what happened during the patching process
+     */
     private void refreshPatchingDialog() {
-        String message = PatchingDialogModel.getInstance().getMessage(); //resultData.getString(PatchingTask.RESPONSE);
-        switch (PatchingDialogModel.getInstance().getResultCode() /*resultCode*/) {
-            case PatchingDialogModel.STEP_DONE:
-            case PatchingDialogModel.STEP_SUCCESS:
+        String message = PatchingDialogModel.getInstance().getMessage();
+        switch (PatchingDialogModel.getInstance().getResultCode()) {
+            case PatchingDialogModel.STEP_FAILED: // The patching process failed
+            case PatchingDialogModel.STEP_SUCCESS: // The patching process succeeded
                 if (progressDialog != null) {
                     progressDialog.dismissAllowingStateLoss();
                 }
@@ -446,7 +428,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 if (PatchingDialogModel.getInstance().getResultCode() == PatchingDialogModel.STEP_SUCCESS) {
                     alertArgs.putInt(DFragment.ID, DIALOG_PATCH_SUCCESS);
                 } else {
-                    alertArgs.putInt(DFragment.ID, DIALOG_PATCH_DONE);
+                    alertArgs.putInt(DFragment.ID, DIALOG_PATCH_FAILED);
                 }
                 alertArgs.putInt(DFragment.TITLE, R.string.app_name_dialogs);
                 alertArgs.putString(DFragment.MESSAGE, message);
@@ -456,10 +438,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 //alertFragment.show(getFragmentManager(), "");
                 docFile = PatchingDialogModel.getInstance().getDocFile();
                 updateViews();
-                getFragmentManager().beginTransaction().add(progressDialog, "").commitAllowingStateLoss();
+                getSupportFragmentManager().beginTransaction().add(progressDialog, "").commitAllowingStateLoss();
                 PatchingDialogModel.getInstance().reset();
                 break;
-            case PatchingDialogModel.STEP_RUNNING:
+            case PatchingDialogModel.STEP_RUNNING: // The patching process is running
                 if (progressDialog == null || progressDialog.isDismissed()) {
                     progressDialog = new DFragment();
                     Bundle progressArgs = new Bundle();
@@ -469,13 +451,30 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     progressDialog.setArguments(progressArgs);
                     progressDialog.setCancelable(false);
                     //progressDialog.show(getFragmentManager(), DFragment.TAG_PROGRESS);
-                    getFragmentManager().beginTransaction().add(progressDialog, DFragment.TAG_PROGRESS).commitAllowingStateLoss();
+                    getSupportFragmentManager().beginTransaction().add(progressDialog, DFragment.TAG_PROGRESS).commitAllowingStateLoss();
                 } else {
                     progressDialog.updateMessage(message);
                 }
                 PatchingDialogModel.getInstance().reset();
                 break;
-            case PatchingDialogModel.STEP_BROWSE:
+            case PatchingDialogModel.STEP_ALREADY: // The patching process has detected the ROM had already been patched
+                if (progressDialog != null) {
+                    progressDialog.dismissAllowingStateLoss();
+                }
+                progressDialog = new DFragment();
+                Bundle alreadyArgs = new Bundle();
+                alreadyArgs.putInt(DFragment.TITLE, R.string.warning);
+                alreadyArgs.putString(DFragment.MESSAGE, message);
+                alreadyArgs.putInt(DFragment.ID, DIALOG_OVERWRITE);
+                alreadyArgs.putInt(DFragment.ICON, android.R.drawable.ic_dialog_alert);
+                alreadyArgs.putInt(DFragment.BUTTONS, 2);
+                progressDialog.setArguments(alreadyArgs);
+                getSupportFragmentManager().beginTransaction().add(progressDialog, "").commitAllowingStateLoss();
+                PatchingDialogModel.getInstance().reset();
+                docFile = "";
+                updateViews();
+                break;
+            case PatchingDialogModel.STEP_BROWSE: // The patching process was interrupted because the patching file was nowhere to be found
                 if (progressDialog != null) {
                     progressDialog.dismissAllowingStateLoss();
                 }
@@ -487,10 +486,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 args.putInt(DFragment.ICON, android.R.drawable.ic_dialog_alert);
                 args.putInt(DFragment.BUTTONS, 2);
                 progressDialog.setArguments(args);
-                //dFragment.show(getFragmentManager(), "");
-                getFragmentManager().beginTransaction().add(progressDialog, "").commitAllowingStateLoss();
+                getSupportFragmentManager().beginTransaction().add(progressDialog, "").commitAllowingStateLoss();
                 PatchingDialogModel.getInstance().reset();
-                docFile = ""; // Le fichier a probablement été supprimé s'il était conservé temporairement dans le dossier de l'app
+                docFile = "";
                 updateViews();
                 break;
         }

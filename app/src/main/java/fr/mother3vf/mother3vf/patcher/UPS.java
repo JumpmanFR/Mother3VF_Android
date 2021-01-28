@@ -13,14 +13,12 @@ You should have received a copy of the GNU General Public License
 along with UniPatcher.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package org.emunix.unipatcher.patcher;
+package fr.mother3vf.mother3vf.patcher;
 
 import android.content.Context;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.emunix.unipatcher.R;
-import org.emunix.unipatcher.Utils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -30,6 +28,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.zip.CRC32;
+
+import fr.mother3vf.mother3vf.R;
 
 public class UPS extends Patcher {
 
@@ -43,7 +43,7 @@ public class UPS extends Patcher {
     public void apply(boolean ignoreChecksum) throws PatchException, IOException {
 
         if (patchFile.length() < 18) {
-            throw new PatchException(context.getString(R.string.notify_error_patch_corrupted));
+            throw new PatchException(context.getString(R.string.patching_error_corrupted));
         }
 
         BufferedInputStream patchStream = null;
@@ -52,11 +52,11 @@ public class UPS extends Patcher {
         UpsCrc upsCrc;
         try {
             if (!checkMagic(patchFile))
-                throw new PatchException(context.getString(R.string.notify_error_not_ups_patch));
+                throw new PatchException(context.getString(R.string.patching_error_not_ups));
 
             upsCrc = readUpsCrc(context, patchFile);
             if (upsCrc.getPatchFileCRC() != upsCrc.getRealPatchCRC())
-                throw new PatchException(context.getString(R.string.notify_error_patch_corrupted));
+                throw new PatchException(context.getString(R.string.patching_error_corrupted));
 
             patchStream = new BufferedInputStream(new FileInputStream(patchFile));
             long patchPos = 0;
@@ -87,7 +87,7 @@ public class UPS extends Patcher {
                 upsCrc.swapInOut();
             } else {
                 if (!ignoreChecksum) {
-                    throw new IOException(context.getString(R.string.notify_error_rom_not_compatible_with_patch));
+                    throw new IOException(context.getString(R.string.patching_error_incorrect_rom));
                 }
             }
 
@@ -102,7 +102,7 @@ public class UPS extends Patcher {
                 offset += p.getValue();
                 patchPos += p.getSize();
                 if (offset > ySize) continue;
-                Utils.INSTANCE.copy(romStream, outputStream, offset - outPos);
+                Utils.copy(romStream, outputStream, offset - outPos);
                 outPos += offset - outPos;
                 for (long i = offset; i < ySize; i++) {
                     x = patchStream.read();
@@ -115,7 +115,7 @@ public class UPS extends Patcher {
                 }
             }
             // write rom tail and trim
-            Utils.INSTANCE.copy(romStream, outputStream, ySize - outPos);
+            Utils.copy(romStream, outputStream, ySize - outPos);
 
         } finally {
             IOUtils.closeQuietly(patchStream);
@@ -126,7 +126,7 @@ public class UPS extends Patcher {
         if (!ignoreChecksum) {
             long realOutCrc = FileUtils.checksumCRC32(outputFile);
             if (realOutCrc != upsCrc.getOutputFileCRC())
-                throw new PatchException(context.getString(R.string.notify_error_wrong_checksum_after_patching));
+                throw new PatchException(context.getString(R.string.patching_error_wrong_checksum_after));
         }
     }
 
@@ -139,7 +139,7 @@ public class UPS extends Patcher {
         while (true) {
             x = stream.read();
             if (x == -1)
-                throw new PatchException(context.getString(R.string.notify_error_patch_corrupted));
+                throw new PatchException(context.getString(R.string.patching_error_corrupted));
             size++;
             offset += (x & 0x7fL) * shift;
             if ((x & 0x80) != 0) break;
@@ -170,7 +170,7 @@ public class UPS extends Patcher {
             for (long i = f.length() - 12; i != 0; i--) {
                 x = stream.read();
                 if (x == -1)
-                    throw new PatchException(context.getString(R.string.notify_error_patch_corrupted));
+                    throw new PatchException(context.getString(R.string.patching_error_corrupted));
                 crc.update(x);
             }
 
@@ -178,7 +178,7 @@ public class UPS extends Patcher {
             for (int i = 0; i < 4; i++) {
                 x = stream.read();
                 if (x == -1)
-                    throw new PatchException(context.getString(R.string.notify_error_patch_corrupted));
+                    throw new PatchException(context.getString(R.string.patching_error_corrupted));
                 crc.update(x);
                 inputCrc += ((long) x) << (i * 8);
             }
@@ -187,7 +187,7 @@ public class UPS extends Patcher {
             for (int i = 0; i < 4; i++) {
                 x = stream.read();
                 if (x == -1)
-                    throw new PatchException(context.getString(R.string.notify_error_patch_corrupted));
+                    throw new PatchException(context.getString(R.string.patching_error_corrupted));
                 crc.update(x);
                 outputCrc += ((long) x) << (i * 8);
             }
@@ -195,7 +195,7 @@ public class UPS extends Patcher {
             long realPatchCrc = crc.getValue();
             long patchCrc = readLong(stream);
             if (patchCrc == -1)
-                throw new PatchException(context.getString(R.string.notify_error_patch_corrupted));
+                throw new PatchException(context.getString(R.string.patching_error_corrupted));
             return new UpsCrc(inputCrc, outputCrc, patchCrc, realPatchCrc);
         } finally {
             IOUtils.closeQuietly(stream);

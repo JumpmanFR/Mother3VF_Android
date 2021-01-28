@@ -1,25 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activity_doc"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F9FFFFFF"
-    android:paddingLeft="4dp"
-    android:paddingRight="4dp"
-    tools:context="fr.mother3vf.mother3vf.DocActivity">
+    tools:context="fr.mother3vf.mother3vf.DocActivity"
+    android:orientation="vertical">
 
-    <ScrollView
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="50dp"
+        style="@android:style/Widget.Holo.Light.ActionBar.Solid"
+        app:titleTextAppearance="@android:style/TextAppearance.Holo.Widget.ActionBar.Title">
+    </androidx.appcompat.widget.Toolbar>
+
+        <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp">
 
         <TextView
-            android:id="@+id/docText"
+            android:id="@+id/doc_text_view"
+            android:textSize="1dp"
             android:textStyle="bold"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_gravity="center_horizontal"
-            android:typeface="monospace" />
+            android:typeface="monospace"/>
     </ScrollView>
-</RelativeLayout>
+</LinearLayout>

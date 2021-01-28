@@ -8,7 +8,6 @@
  * <p>
  * Contributors:
  * Paul Kratt - main MultiPatch application for macOS
- * byuu - UPS patcher
  * xperia64 - port to Android support
  * JumpmanFR - adaptation for MOTHER3VF
  ******************************************************************************/
@@ -17,12 +16,12 @@ package fr.mother3vf.mother3vf;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import android.os.ResultReceiver;
 import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
+
+import fr.mother3vf.mother3vf.patcher.UPS;
 
 
 public class PatchingTask extends IntentService {
@@ -33,6 +32,7 @@ public class PatchingTask extends IntentService {
     public static final String ROM_FILE = "ROM_FILE";
     public static final String PATCH_FILE = "PATCH_FILE";
     public static final String BACKUP = "BACKUP";
+    public static final String CHECK_ALREADY_PATCHED = "CHECK_ALREADY_PATCHED";
 
     public PatchingTask() {
         super("PatchingTask");
@@ -42,63 +42,83 @@ public class PatchingTask extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         if (ACTION_PATCH.equals(intent.getAction())) {
-            String romFile = intent.getStringExtra(ROM_FILE);
+            String romFilePath = intent.getStringExtra(ROM_FILE);
             boolean backup = intent.getBooleanExtra(BACKUP, true);
+            boolean checkAlreadyPatched = intent.getBooleanExtra(CHECK_ALREADY_PATCHED, true);
             String msg;
             String docFile = "";
-            if (romFile.toLowerCase().endsWith(".zip")) {
+            if (romFilePath.toLowerCase().endsWith(".zip")) {
                 sendMessage(PatchingDialogModel.STEP_RUNNING, getResources().getString(R.string.wait_unzip_rom), getBaseContext());
                 try {
-                    romFile = FileUtils.unzip(romFile, MainActivity.ROM_FORMATS, "");
-                    if ("".equals(romFile)) {
-                        sendMessage(PatchingDialogModel.STEP_DONE, getResources().getString(R.string.rom_zip_not_found), getBaseContext());
+                    romFilePath = FileUtils.unzip(romFilePath, MainActivity.ROM_FORMATS, "");
+                    if ("".equals(romFilePath)) {
+                        sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.rom_zip_not_found), getBaseContext());
                         return;
                     }
                 } catch (IOException e) {
-                    sendMessage(PatchingDialogModel.STEP_DONE, getResources().getString(R.string.rom_zip_error), getBaseContext());
+                    sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.rom_zip_error), getBaseContext());
                     return;
                 }
             }
-            File romFileFile = new File(romFile);
-            if (romFileFile.exists()) {
+            File romFile = new File(romFilePath);
+            if (romFile.exists()) {
                 // ÉTAPE 1 : RECHERCHE DU PATCH (+ TÉLÉCHARGEMENT, DÉCOMPRESSION, ETC.)
                 sendMessage(PatchingDialogModel.STEP_RUNNING, getResources().getString(R.string.wait_prepare), getBaseContext());
                 PatchFinder.getInstance().setContext(getBaseContext());
-                String patchFile;
+                String patchFilePath;
                 if (intent.hasExtra(PATCH_FILE)) {
-                    patchFile = intent.getStringExtra(PATCH_FILE);
+                    patchFilePath = intent.getStringExtra(PATCH_FILE);
                 } else {
-                    patchFile = PatchFinder.getInstance().findAndSmartSelectInMainFolders(romFileFile.getParentFile(), getApplicationContext());
+                    patchFilePath = PatchFinder.getInstance().findAndSmartSelectInMainFolders(romFile.getParentFile(), getApplicationContext());
                 }
-                if (patchFile == null || "".equals(patchFile)) {
+                if (patchFilePath == null || "".equals(patchFilePath)) {
                     sendMessage(PatchingDialogModel.STEP_BROWSE, getResources().getString(R.string.patch_not_found), getBaseContext());
                     return;
                 }
-                docFile = PatchFinder.getInstance().findJointDoc(patchFile);
-                if (!romFileFile.canWrite()) {
-                    sendMessage(PatchingDialogModel.STEP_DONE, getResources().getString(R.string.cantwrite), docFile, getBaseContext());
+                docFile = PatchFinder.getInstance().findJointDoc(patchFilePath);
+                if (!romFile.canWrite()) {
+                    sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.cantwrite), docFile, getBaseContext());
                     return;
                 }
                 // ÉTAPE 2 : APPLICATION DU PATCH
                 sendMessage(PatchingDialogModel.STEP_RUNNING, getResources().getString(R.string.wait_patching), getBaseContext());
                 Log.v(PatchingTask.class.getSimpleName(), "Application du patch");
-                int e = MainActivity.upsPatchRom(romFile, patchFile, romFile + ".temp", 0);
-                if (e != 0) {
-                    msg = parseError(e);
-                    File f = new File(romFile + ".temp");
+                //int e = MainActivity.upsPatchRom(romFile, patchFile, romFile + ".temp", 0);
+
+                File patchFile = new File (patchFilePath);
+                File outputFile = new File(romFile.getAbsolutePath() + ".temp");
+
+                if (checkAlreadyPatched) {
+                    try {
+                        UPS.UpsCrc crc = UPS.readUpsCrc(getBaseContext(), patchFile);
+                        if (crc.getOutputFileCRC() == org.apache.commons.io.FileUtils.checksumCRC32(romFile)) {
+                            sendMessage(PatchingDialogModel.STEP_ALREADY, getResources().getString(R.string.already_exists), getBaseContext());
+                            return;
+                        }
+                    } catch (Exception e) {
+                    }
+                }
+
+                UPS ups = new UPS(getBaseContext(), patchFile, romFile, outputFile);
+                try {
+                    ups.apply(false);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    File f = new File(romFilePath + ".temp");
                     if (f.exists()) {
                         f.delete();
                     }
-                    sendMessage(PatchingDialogModel.STEP_DONE, msg, docFile, getBaseContext());
+                    sendMessage(PatchingDialogModel.STEP_FAILED, e.getLocalizedMessage(), docFile, getBaseContext());
                     return;
                 }
-                File oldrom = new File(romFile);
-                File bkrom = new File(romFile + ".original");
+
+                File oldrom = new File(romFilePath);
+                File bkrom = new File(romFilePath + ".original");
                 oldrom.renameTo(bkrom);
-                File newrom = new File(romFile + ".temp");
+                File newrom = new File(romFilePath + ".temp");
                 newrom.renameTo(oldrom);
                 if (!backup) {
-                    File f = new File(romFile + ".original");
+                    File f = new File(romFilePath + ".original");
                     if (f.exists()) {
                         f.delete();
                     }
@@ -110,7 +130,7 @@ public class PatchingTask extends IntentService {
 
             } else {
                 msg = getResources().getString(R.string.rom_not_found);
-                sendMessage(PatchingDialogModel.STEP_DONE, msg, docFile, getBaseContext());
+                sendMessage(PatchingDialogModel.STEP_FAILED, msg, docFile, getBaseContext());
             }
         }
     }

@@ -8,7 +8,6 @@
  * <p>
  * Contributors:
  * Paul Kratt - main MultiPatch application for macOS
- * byuu - UPS patcher
  * xperia64 - port to Android support
  * JumpmanFR - adaptation for MOTHER3VF
  ******************************************************************************/
@@ -70,21 +69,21 @@ public class PatchFinder {
     }
 
     public String findAndSmartSelectInMainFolders(File romFolder, Context context) {
-        // On nettoie le dossier de l’application (pour ne pas se reposer sur des versions obsolètes du patch)
+        // Cleaning the application folder (so that we don’t rely on obsolete versions of the patch)
         FileUtils.clearFiles(context.getFilesDir(), PATCH_FILE_TO_FIND + "|" + ZIPFILES_TO_FIND + "|" + DOC_FILE_TO_FIND);
 
-        ArrayList<String> files = findInMainFolders(romFolder); // Première tentative : on recherche dans la mémoire
+        ArrayList<String> files = findInMainFolders(romFolder); // First attempt: searching in memory
         if (files.size() > 0) {
             return bestFile(files, context.getFilesDir().getAbsolutePath());
         }
 
-        String downloaded = downloadFromSite(context.getFilesDir()); // Deuxième tentative : on recherche sur le site
+        String downloaded = downloadFromSite(context.getFilesDir()); // Second attempt: searching on the website
         if (!"".equals(downloaded)) {
             return downloaded;
         }
 
         PatchingTask.sendMessage(PatchingDialogModel.STEP_RUNNING, context.getString(R.string.wait_default_patch), context);
-        return findInAssets(context); // Troisième tentative : on récupère le fichier dans les assets
+        return findInAssets(context); // Third attempt: searching in assets
     }
 
     public ArrayList<String> findInMainFolders(File romFolder) {
@@ -113,10 +112,10 @@ public class PatchFinder {
             if (files == null) {
                 return result;
             }
-            for (File file : files) { // on parcourt tous les fichiers
-                if (file.isDirectory()) { // si le fichier est un dossier => recherche récursive dans les sous-dossiers
+            for (File file : files) { // Parsing files in folder
+                if (file.isDirectory()) { // If the file is a folder => recursive search in subdirectories
                     result.addAll(findInFolder(file));
-                } else if (file.getName().matches(PATCH_FILE_TO_FIND) || file.getName().matches(ZIPFILES_TO_FIND)) { // si le fichier correspond au nom attendu => on le renvoie
+                } else if (file.getName().matches(PATCH_FILE_TO_FIND) || file.getName().matches(ZIPFILES_TO_FIND)) { // If file matches the expected name => return it
                     result.add(file.getAbsolutePath());
                 }
             }
@@ -125,7 +124,7 @@ public class PatchFinder {
     }
 
     /**
-     * Recherche et extrait le fichier du dossier des assets
+     * Searches the patch is the assets and extracts it from there
      * @param context
      * @return
      */
@@ -193,9 +192,9 @@ public class PatchFinder {
     }
 
     /**
-     * Télécharge l’archive et en extrait le fichier recherché
-     * @param destination
-     * @return
+     * Downloads the archive from the site and extracts the patch from it
+     * @param destination the folder where we want to extract the archive
+     * @return the extracted patch, as an absolute path
      */
     private String downloadFromSite(File destination) {
         PatchingTask.sendMessage(PatchingDialogModel.STEP_RUNNING, context.getString(R.string.wait_download), context);
@@ -213,24 +212,24 @@ public class PatchFinder {
     }
 
     /**
-     * Détermine la meilleure occurrence parmi les fichiers trouvés, incluant celles se trouvant dans le zip connu
-     * @param files
-     * @param appFolder
-     * @return
+     * Determines the best occurrence among the files (.ups or .zip) found
+     * @param files as an ArrayList of absolute paths, need to match either PATCH_FILE_TO_FIND or ZIPFILES_TO_FIND
+     * @param appFolder the app folder as a destination folder in case we need to unzip
+     * @return the best file’s name
      */
     private String bestFile(ArrayList<String> files, String appFolder) {
         String bestFile = "";
         int bestFilePathDepth = 0;
-        for (String file : files) { // on parcourt tous les fichiers et on trie ceux de type patch pour garder celui le moins profond dans l'arborescence
+        for (String file : files) {
             int pathDepth = getPathDepth(file);
             if (file.matches(".*" + PATCH_FILE_TO_FIND) && (bestFilePathDepth == 0 || pathDepth < bestFilePathDepth)) {
                 bestFile = file;
                 bestFilePathDepth = pathDepth;
             }
         }
-        if (bestFilePathDepth != 0) { // on a trouvé au moins un fichier de type recherché
+        if (bestFilePathDepth != 0) { // at least one patch file (PATCH_FILE_TO_FIND) has been found
             return bestFile;
-        } else { // on n'a trouvé que des fichiers de type zip
+        } else { // only zip files (ZIPFILES_TO_FIND) were found
             Collections.sort(files, new Comparator<String>() {
                 @Override
                 public int compare(String file1, String file2) {
@@ -257,6 +256,12 @@ public class PatchFinder {
         return count;
     }
 
+    /**
+     * Tells which one of two version numbers is the higher
+     * @param str1 version number
+     * @param str2 version number
+     * @return 1 or -1 if str1 or str2 is higher respectively, 0 if they are equal
+     */
     private int versionCompare(String str1, String str2) {
         Pattern pattern = Pattern.compile(".*" + ZIPFILES_TO_FIND);
         Matcher matcher = pattern.matcher(str1);
@@ -271,16 +276,16 @@ public class PatchFinder {
         String[] vals1 = str1.split("\\.");
         String[] vals2 = str2.split("\\.");
         int i = 0;
-        // set index to first non-equal ordinal or length of shortest version string
+        // Set index to first non-equal ordinal or length of shortest version string
         while (i < vals1.length && i < vals2.length && vals1[i].equals(vals2[i])) {
             i++;
         }
-        // compare first non-equal ordinal number
+        // Compare first non-equal ordinal number
         if (i < vals1.length && i < vals2.length) {
             int diff = Integer.valueOf(vals1[i]).compareTo(Integer.valueOf(vals2[i]));
             return Integer.signum(diff);
         }
-        // the strings are equal or one string is a substring of the other
+        // The strings are equal or one string is a substring of the other
         // e.g. "1.2.3" = "1.2.3" or "1.2.3" < "1.2.3.4"
         return Integer.signum(vals1.length - vals2.length);
     }

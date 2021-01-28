@@ -1,38 +1,72 @@
+/*******************************************************************************
+ * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)
+ * <p>
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/gpl.html
+ * <p>
+ * Contributors:
+ * Paul Kratt - main MultiPatch application for macOS
+ * xperia64 - port to Android support
+ * JumpmanFR - adaptation for MOTHER3VF
+ ******************************************************************************/
 package fr.mother3vf.mother3vf;
 
+import android.app.ActionBar;
 import android.app.Activity;
-import android.content.Intent;
 import android.graphics.Paint;
-import android.net.Uri;
+import android.graphics.Rect;
 import android.os.Bundle;
-import android.text.SpannableString;
-import android.text.style.ClickableSpan;
+import android.text.method.ScrollingMovementMethod;
 import android.text.util.Linkify;
-import android.util.Patterns;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import androidx.appcompat.widget.Toolbar;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.regex.Matcher;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.regex.Pattern;
 
-public class DocActivity extends Activity implements View.OnLayoutChangeListener {
+import androidx.appcompat.app.AppCompatActivity;
+import fr.mother3vf.mother3vf.databinding.ActivityDocBinding;
+
+public class DocActivity extends AppCompatActivity implements View.OnLayoutChangeListener, View.OnTouchListener {
+
+    private static final int MIN_FONT_SIZE = 6;
+    private static final int MAX_FONT_SIZE = 20;
+    private static final int DEFAULT_FONT_SIZE = 14;
 
     public static final String DOC_FILE = "DOC_FILE";
 
     private static final String DOC_TEXT = "DOC_TEXT";
 
-    private String docText;
+    private ActivityDocBinding views;
 
-    private TextView textView;
+    private Paint paint;
+    private int maxCharsPerLine = 0;
+
+    private String docText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_doc);
+        views = ActivityDocBinding.inflate(getLayoutInflater());
+        setContentView(views.getRoot());
+
+        setSupportActionBar(views.toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(true);
+        getSupportActionBar().setIcon(R.drawable.ic_actionbar);
+
+        views.toolbar.setOnTouchListener(this);
 
         if (savedInstanceState == null) {
             Bundle extras = getIntent().getExtras();
@@ -43,11 +77,12 @@ public class DocActivity extends Activity implements View.OnLayoutChangeListener
         } else {
             docText = savedInstanceState.getString(DOC_TEXT);
         }
-        textView = ((TextView) findViewById(R.id.docText));
-        textView.setText(docText.toString());
-        Linkify.addLinks(textView, Pattern.compile("https?://\\S*"), "");
-        textView.setVisibility(View.INVISIBLE);
-        textView.addOnLayoutChangeListener(this);
+
+        paint = views.docTextView.getPaint();
+        views.docTextView.setVisibility(View.INVISIBLE);
+        views.docTextView.addOnLayoutChangeListener(this);
+        views.docTextView.setText(docText);
+        Linkify.addLinks(views.docTextView, Pattern.compile("https?://\\S*"), "");
     }
 
     @Override
@@ -55,6 +90,11 @@ public class DocActivity extends Activity implements View.OnLayoutChangeListener
         savedInstanceState.putString(DOC_TEXT, docText);
     }
 
+    /**
+     * Gets the doc content from text file and return it as a string
+     * @param docFile
+     * @return the doc content
+     */
     private String loadContentFromFile(String docFile) {
         if (docFile != null && !"".equals(docFile)) {
             BufferedReader reader = null;
@@ -86,41 +126,79 @@ public class DocActivity extends Activity implements View.OnLayoutChangeListener
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (textView != null) {
-            textView.removeOnLayoutChangeListener(this);
+        if (views.docTextView != null) {
+            views.docTextView.removeOnLayoutChangeListener(this);
         }
+        views = null;
     }
 
     @Override
     public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
         if (oldRight == 0) {
-            int fontSize = findPerfectFontSize(6, 20);
-            textView.setTextSize(fontSize);
+            int fontSize = findIdealFontSize(MIN_FONT_SIZE, MAX_FONT_SIZE);
+            if (fontSize == MIN_FONT_SIZE) {
+                fontSize = DEFAULT_FONT_SIZE;
+            }
+            views.docTextView.setTextSize(fontSize);
+            views.docTextView.setVisibility(View.VISIBLE);
+            views.docTextView.post( new Runnable() {
+                    @Override
+                    public void run() {
+                        views.docTextView.requestLayout();
+                    }
+                });
         } else {
-            textView.setVisibility(View.VISIBLE);
-            textView.removeOnLayoutChangeListener(this);
+            views.docTextView.setVisibility(View.VISIBLE);
+            views.docTextView.removeOnLayoutChangeListener(this);
         }
     }
 
-    private int findPerfectFontSize(int minSize, int maxSize) {
+    private void updateMaxCharsPerLine() {
+        maxCharsPerLine = Arrays.stream(docText.split("\n")).max(new Comparator<String>() {
+            @Override
+            public int compare(String str1, String str2) {
+                return str1.length() - str2.length();
+            }}).orElse("").length() + 1;
+    }
+
+    /**
+     * Finds the biggest font size for the doc (monospace, manual line breaks) before the text lines get cut in two
+     * @param minSize
+     * @param maxSize
+     * @return that ideal font size
+     */
+    private int findIdealFontSize(int minSize, int maxSize) {
         if (maxSize - minSize <= 1) {
             return minSize;
         }
         int midSize = (maxSize + minSize) / 2;
         if (isFontSizeFitting(midSize)) {
-            return findPerfectFontSize(midSize, maxSize);
+            return findIdealFontSize(midSize, maxSize);
         } else {
-            return findPerfectFontSize(minSize, midSize);
+            return findIdealFontSize(minSize, midSize);
         }
     }
 
+    /**
+     * Tells whether the text lines in the doc fit in the view without getting cut in two, for a specific font size
+     * @param fontSize
+     * @return true if it does, false otherwise
+     */
     private boolean isFontSizeFitting(int fontSize) {
-        textView.setTextSize(fontSize);
-        return textSize() <= ((ViewGroup) textView.getParent()).getWidth();
+        views.docTextView.setTextSize(fontSize);
+        if (maxCharsPerLine == 0) {
+            updateMaxCharsPerLine();
+        }
+        float textSize = paint.measureText("m", 0, 1) * maxCharsPerLine;
+        return textSize <= ((ViewGroup) views.docTextView.getParent()).getWidth();
     }
 
-    private float textSize() {
-        Paint paint = textView.getPaint();
-        return paint.measureText("m", 0, 1) * 75;
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
+        /*Log.v("test", "View: " + view);
+        Log.v("test", "On: " + motionEvent.getX() + " /  " + motionEvent.getY());*/
+        views.scrollView.smoothScrollTo(0,0);
+        return false;
     }
+
 }
