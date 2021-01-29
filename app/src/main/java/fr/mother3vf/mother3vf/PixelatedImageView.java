@@ -34,6 +34,7 @@ public class PixelatedImageView extends ImageView {
     Paint paint;
     BitmapFactory.Options options;
     Bitmap bitmap;
+    boolean isRtl;
 
     public PixelatedImageView(Context context) {
         super(context);
@@ -59,6 +60,7 @@ public class PixelatedImageView extends ImageView {
         options.inScaled = false;
         bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.image, options);
         drawingRect = new RectF();
+        isRtl = (TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_RTL);
     }
 
     @Override
@@ -66,16 +68,14 @@ public class PixelatedImageView extends ImageView {
         float widthScale = ((float) getWidth()) / bitmap.getWidth();
         float heightScale = ((float) getHeight()) / bitmap.getHeight();
         float scale = Math.min(widthScale, heightScale);
-        if (TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_RTL) {
+        drawingRect.top = getTop();
+        drawingRect.bottom = getTop() + bitmap.getHeight() * scale;
+        if (isRtl) {
             drawingRect.left = getLeft();
-            drawingRect.top = getTop();
             drawingRect.right = getLeft() +  bitmap.getWidth() * scale;
-            drawingRect.bottom = getTop() + bitmap.getHeight() * scale;
         } else {
             drawingRect.left = getRight() -  bitmap.getWidth() * scale;
-            drawingRect.top = getTop();
             drawingRect.right = getRight();
-            drawingRect.bottom = getTop() + bitmap.getHeight() * scale;
         }
         canvas.drawBitmap(bitmap, null, drawingRect, paint);
     }
