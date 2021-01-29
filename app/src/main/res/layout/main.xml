@@ -11,7 +11,6 @@
             android:id="@+id/background"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:adjustViewBounds="false"
             android:cropToPadding="false"
             android:src="@drawable/image" />
 
@@ -19,9 +18,10 @@
             android:id="@+id/title"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
             android:layout_marginTop="10dp"
             android:adjustViewBounds="true"
+            android:contentDescription="@string/app_description"
             android:src="@drawable/titre" />
 
         <LinearLayout
@@ -41,7 +41,7 @@
                     android:id="@+id/romButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
                     android:textColor="@drawable/focusable"
                     android:text="@string/browse"
                     android:focusable="true"/>
@@ -52,8 +52,8 @@
                     android:layout_height="wrap_content"
                     android:layout_alignBottom="@+id/romButton"
                     android:layout_alignTop="@+id/romButton"
-                    android:layout_toRightOf="@id/romButton"
-                    android:layout_marginLeft="4dp"
+                    android:layout_toEndOf="@id/romButton"
+                    android:layout_marginStart="4dp"
                     android:ellipsize="end"
                     android:gravity="center_vertical"
                     android:maxLines="2" />
@@ -62,11 +62,12 @@
                     android:id="@+id/backupCheckbox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
                     android:layout_below="@id/romButton"
                     android:layout_marginBottom="5dp"
                     android:layout_marginTop="0dp"
-                    android:paddingRight="5dp"
+                    android:paddingStart="5dp"
+                    android:paddingEnd="5dp"
                     android:textColor="@drawable/focusable"
                     android:background="@drawable/checkbox_bg"
                     android:focusable="true"
@@ -77,8 +78,8 @@
                     android:id="@+id/applyPatch"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentRight="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentEnd="true"
                     android:layout_below="@id/backupCheckbox"
                     android:textColor="@drawable/focusable"
                     android:focusable="false"
@@ -92,7 +93,7 @@
                     android:layout_below="@id/applyPatch"
                     android:layout_marginBottom="10dp"
                     android:layout_marginTop="16dp"
-                    android:layout_marginLeft="2dp"
+                    android:layout_marginStart="2dp"
                     android:background="@drawable/link_bg"
                     android:paddingTop="1dp"
                     android:paddingBottom="1dp"
@@ -111,7 +112,7 @@
                     android:layout_below="@id/applyPatch"
                     android:layout_marginBottom="10dp"
                     android:layout_marginTop="16dp"
-                    android:layout_marginLeft="2dp"
+                    android:layout_marginStart="2dp"
                     android:background="@drawable/link_bg"
                     android:paddingTop="1dp"
                     android:paddingBottom="1dp"
@@ -138,13 +139,14 @@
             android:layout_width="22dp"
             android:layout_height="wrap_content"
             android:layout_alignBottom="@+id/background"
-            android:layout_alignRight="@+id/background"
+            android:layout_alignEnd="@+id/background"
             android:layout_margin="8dp"
             android:adjustViewBounds="true"
             android:focusable="true"
             android:background="@drawable/link_bg"
             android:padding="1dp"
-            android:src="@drawable/about" />
+            android:src="@drawable/about"
+            android:contentDescription="@string/info_description" />
     </RelativeLayout>
 
 </RelativeLayout>

@@ -7,8 +7,13 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.widget.ImageView;
+
+import java.util.Locale;
+
+import androidx.core.view.ViewCompat;
 
 
 /*******************************************************************************
@@ -61,10 +66,17 @@ public class PixelatedImageView extends ImageView {
         float widthScale = ((float) getWidth()) / bitmap.getWidth();
         float heightScale = ((float) getHeight()) / bitmap.getHeight();
         float scale = Math.min(widthScale, heightScale);
-        drawingRect.left = getRight() -  bitmap.getWidth() * scale;
-        drawingRect.top = getTop();
-        drawingRect.right = getRight();
-        drawingRect.bottom = getTop() + bitmap.getHeight() * scale;
+        if (TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_RTL) {
+            drawingRect.left = getLeft();
+            drawingRect.top = getTop();
+            drawingRect.right = getLeft() +  bitmap.getWidth() * scale;
+            drawingRect.bottom = getTop() + bitmap.getHeight() * scale;
+        } else {
+            drawingRect.left = getRight() -  bitmap.getWidth() * scale;
+            drawingRect.top = getTop();
+            drawingRect.right = getRight();
+            drawingRect.bottom = getTop() + bitmap.getHeight() * scale;
+        }
         canvas.drawBitmap(bitmap, null, drawingRect, paint);
     }
 }

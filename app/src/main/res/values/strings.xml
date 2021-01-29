@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:locale="fr">
     <string name="app_name">MOTHER 3 VF</string>
+    <string name="app_description">MOTHER 3, la traduction française</string>
+    <string name="info_description">MOTHER 3, la traduction française</string>
     <string name="main_view_title">Installation du patch MOTHER 3 VF</string>
     <string name="app_name_dialogs">MOTHER 3 VF</string>
     <string name="permissions_title">Autorisations</string>
