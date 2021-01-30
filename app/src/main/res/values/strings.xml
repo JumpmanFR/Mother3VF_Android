@@ -11,7 +11,7 @@
     <string name="ok">OK</string>
     <string name="cancel">Annuler</string>
     <string name="error">Erreur</string>
-    <string name="browser_title">Sélectionnez un fichier</string>
+    <string name="unknown_error">Une erreur inconnue est survenue.</string>
     <string name="site_btn">mother3vf.free.fr</string>
     <string name="doc_btn">Documentation</string>
     <string name="doc_title">À propos de notre traduction</string>
@@ -19,7 +19,12 @@
     <string name="cantRead">Impossible d’accéder au dossier.</string>
     <string name="browse">Choisir la ROM…</string>
     <string name="patch">Appliquer le patch de traduction</string>
-    <string name="bkup_rom">Garder une copie de la ROM d’origine</string>
+    <string name="backup_rom">Garder une copie de la ROM d’origine</string>
+    <string name="browser_title">Sélectionnez un fichier</string>
+    <string name="only_show_files">Afficher uniquement les %s</string>
+    <string name="only_show_roms">roms GBA</string>
+    <string name="only_show_patches">patchs UPS</string>
+    <string name="browser_dismiss">Fermer</string>
     <string name="warning">Attention</string>
     <string name="already_exists">Votre ROM a déjà été traduite. Voulez-vous la remettre dans sa langue d’origine ?</string>
     <string name="bad_compression_format">Le fichier sur lequel vous êtes sur le point d’appliquer le patch ressemble à une archive compressée d’un type qui n’est pas pris en charge.\nIl est peut-être nécessaire d’extraire d’abord son contenu à l’aide d’un outil dédié.\nAppliquer le patch malgré tout ?</string>

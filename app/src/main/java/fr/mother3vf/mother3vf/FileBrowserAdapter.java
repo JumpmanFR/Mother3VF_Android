@@ -19,9 +19,8 @@ import androidx.recyclerview.widget.RecyclerView;
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
  * <p>
- * Contributors:
- * Paul Kratt - MultiPatch app for macOS
- * JumpmanFR - adaptation for MOTHER 3 VF
+ * Developed by JumpmanFR
+ * Inspired from Paul Kratt’s MultiPatch app for macOS
  ******************************************************************************/
 public class FileBrowserAdapter extends RecyclerView.Adapter<FileBrowserAdapter.ViewHolder> {
 
@@ -53,7 +52,7 @@ public class FileBrowserAdapter extends RecyclerView.Adapter<FileBrowserAdapter.
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        TextView myTextView;
+        private final TextView myTextView;
 
         ViewHolder(View itemView) {
             super(itemView);

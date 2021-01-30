@@ -4,4 +4,10 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">match_parent</item>
     </style>
+    <style name="link">
+        <item name="android:background">@drawable/link_bg</item>
+    </style>
+    <style name="row">
+        <item name="android:background">@drawable/row_bg</item>
+    </style>
 </resources>

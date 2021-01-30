@@ -17,6 +17,7 @@ import java.util.Comparator;
 import java.util.regex.Pattern;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import fr.mother3vf.mother3vf.databinding.ActivityDocBinding;
 
@@ -28,9 +29,8 @@ import fr.mother3vf.mother3vf.databinding.ActivityDocBinding;
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
  * <p>
- * Contributors:
- * Paul Kratt - MultiPatch app for macOS
- * JumpmanFR - adaptation for MOTHER 3 VF
+ * Developed by JumpmanFR
+ * Inspired from Paul Kratt’s MultiPatch app for macOS
  ******************************************************************************/
 public class DocActivity extends AppCompatActivity implements View.OnLayoutChangeListener, View.OnTouchListener, View.OnClickListener {
 
@@ -57,8 +57,11 @@ public class DocActivity extends AppCompatActivity implements View.OnLayoutChang
         setContentView(views.getRoot());
 
         setSupportActionBar(views.toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(true);
-        getSupportActionBar().setIcon(R.drawable.ic_actionbar);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            getSupportActionBar().setDisplayShowTitleEnabled(true);
+            getSupportActionBar().setIcon(R.drawable.ic_actionbar);
+        }
 
         views.toolbar.setOnClickListener(this);
         views.toolbar.setOnTouchListener(this);
@@ -113,9 +116,7 @@ public class DocActivity extends AppCompatActivity implements View.OnLayoutChang
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (views.docTextView != null) {
-            views.docTextView.removeOnLayoutChangeListener(this);
-        }
+        views.docTextView.removeOnLayoutChangeListener(this);
         views = null;
     }
 

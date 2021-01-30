@@ -30,14 +30,14 @@
         <activity
             android:name=".FileBrowserActivity"
             android:label="@string/browser_title"
-            android:theme="@style/Theme.Transparent" />
+            android:theme="@style/MainThemeTransparentNoBar" />
 
         <service android:name=".PatchingTask" />
 
         <activity
             android:name=".DocActivity"
             android:label="@string/doc_title"
-            android:theme="@style/MainThemeNoBar" />
+            android:theme="@style/MainThemeTransparentNoBar" />
     </application>
 
 </manifest>

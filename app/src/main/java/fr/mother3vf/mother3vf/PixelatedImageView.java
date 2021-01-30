@@ -24,9 +24,8 @@ import androidx.core.view.ViewCompat;
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
  * <p>
- * Contributors:
- * Paul Kratt - MultiPatch app for macOS
- * JumpmanFR - adaptation for MOTHER 3 VF
+ * Developed by JumpmanFR
+ * Inspired from Paul Kratt’s MultiPatch app for macOS
  ******************************************************************************/
 @SuppressLint("AppCompatCustomView")
 public class PixelatedImageView extends ImageView {
@@ -56,7 +55,6 @@ public class PixelatedImageView extends ImageView {
         paint.setDither(false);
         paint.setAntiAlias(false);
         options = new BitmapFactory.Options();
-        options.inDither = false;
         options.inScaled = false;
         bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.image, options);
         drawingRect = new RectF();

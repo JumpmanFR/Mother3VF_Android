@@ -25,9 +25,8 @@ import java.util.zip.ZipInputStream;
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
  * <p>
- * Contributors:
- * Paul Kratt - MultiPatch app for macOS
- * JumpmanFR - adaptation for MOTHER 3 VF
+ * Developed by JumpmanFR
+ * Inspired from Paul Kratt’s MultiPatch app for macOS
  ******************************************************************************/
 public class FileUtils {
 
@@ -55,11 +54,15 @@ public class FileUtils {
      * @throws IOException if file accesses fail
      */
     public static String unzip(String fileString, String wantedFile, String bonusFile, String targetDirectory) throws IOException {
-        Log.v(PatchingTask.class.getSimpleName(), "Décompression de " + fileString);
-        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(fileString));
-        ZipInputStream zis = new ZipInputStream(bis);
+        Log.v(PatchingTask.class.getSimpleName(), "Unzipping " + fileString);
         String resultFileName = "";
+        FileInputStream fis = null;
+        BufferedInputStream bis = null;
+        ZipInputStream zis = null;
         try {
+            fis = new FileInputStream(fileString);
+            bis = new BufferedInputStream(fis);
+            zis = new ZipInputStream(bis);
             ZipEntry ze;
             int count;
             byte[] buffer = new byte[8192];
@@ -73,20 +76,15 @@ public class FileUtils {
                 }
                 File file = new File(targetDirectory, fileName);
                 File dir = ze.isDirectory() ? file : file.getParentFile();
-                if (!dir.isDirectory() && !dir.mkdirs()) {
-                    throw new FileNotFoundException("Failed to ensure directory: " + dir.getAbsolutePath());
+                if (dir == null || (!dir.isDirectory() && !dir.mkdirs())) {
+                    throw new FileNotFoundException("Failed to ensure directory: " + dir);
                 }
                 if (ze.isDirectory()) {
                     continue;
                 }
-                try (FileOutputStream fout = new FileOutputStream(file)) {
+                try (FileOutputStream fOut = new FileOutputStream(file)) {
                     while ((count = zis.read(buffer)) > 0) {
-                        if (count == 0) {
-                            fout.close();
-                            bis.close();
-                            throw new IOException();
-                        }
-                        fout.write(buffer, 0, count);
+                        fOut.write(buffer, 0, count);
                     }
                 }
                 if (count == 0) {
@@ -94,8 +92,13 @@ public class FileUtils {
                 }
             }
         } finally {
-            bis.close();
-            //zis.close();
+            if (zis != null) {
+                zis.close();
+            } else if (bis != null) {
+                bis.close();
+            } else if (fis != null) {
+                fis.close();
+            }
         }
 
         if ("".equals(resultFileName)) {
@@ -111,7 +114,7 @@ public class FileUtils {
      * @return the file, as an absolute path
      */
     public static String downloadFile(String url, File folder) {
-        Log.v(PatchingTask.class.getSimpleName(), "Téléchargement de " + url);
+        Log.v(PatchingTask.class.getSimpleName(), "Downloading " + url);
         try {
             URL u = new URL(url);
             URLConnection conn = u.openConnection();
@@ -145,10 +148,12 @@ public class FileUtils {
     public static void clearFiles(File folder, String filter) {
         if (folder.exists()) {
             String[] fileNames = folder.list();
-            for (String fileName : fileNames) {
-                if (fileName.matches(filter)) {
-                    //noinspection ResultOfMethodCallIgnored
-                    new File(folder, fileName).delete();
+            if (fileNames != null) {
+                for (String fileName : fileNames) {
+                    if (fileName.matches(filter)) {
+                        //noinspection ResultOfMethodCallIgnored
+                        new File(folder, fileName).delete();
+                    }
                 }
             }
         }

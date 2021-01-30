@@ -61,10 +61,13 @@ public class UPS extends Patcher {
             patchStream = new BufferedInputStream(new FileInputStream(patchFile));
             long patchPos = 0;
             // skip magic
-            for (int i = 0; i < 4; i++) {
-                patchStream.read();
+            for (int i = 0; i < MAGIC_NUMBER.length; i++) {
+                int readRes = patchStream.read();
+                if (readRes == -1) {
+                    throw new PatchException(context.getString(R.string.patching_error_corrupted));
+                }
             }
-            patchPos += 4;
+            patchPos += MAGIC_NUMBER.length;
 
             // decode rom and output size
             Pair p;
@@ -77,11 +80,13 @@ public class UPS extends Patcher {
 
             long realRomCrc = FileUtils.checksumCRC32(romFile);
 
+            //noinspection StatementWithEmptyBody
             if (romFile.length() == xSize && realRomCrc == upsCrc.getInputFileCRC()) {
                 // xSize, ySize, inCRC, outCRC not change
             } else if (romFile.length() == ySize && realRomCrc == upsCrc.getOutputFileCRC()) {
                 // swap(xSize, ySize) and swap(inCRC, outCRC)
                 long tmp = xSize;
+                //noinspection SuspiciousNameCombination
                 xSize = ySize;
                 ySize = tmp;
                 upsCrc.swapInOut();
@@ -153,9 +158,9 @@ public class UPS extends Patcher {
         FileInputStream stream = null;
         try {
             stream = new FileInputStream(f);
-            byte[] buffer = new byte[4];
-            stream.read(buffer);
-            return Arrays.equals(buffer, MAGIC_NUMBER);
+            byte[] buffer = new byte[MAGIC_NUMBER.length];
+            int readRes = stream.read(buffer);
+            return readRes == MAGIC_NUMBER.length && Arrays.equals(buffer, MAGIC_NUMBER);
         } finally {
             IOUtils.closeQuietly(stream);
         }
@@ -217,8 +222,8 @@ public class UPS extends Patcher {
     public static class UpsCrc {
         private long inputFileCRC;
         private long outputFileCRC;
-        private long patchFileCRC;
-        private long realPatchCRC;
+        private final long patchFileCRC;
+        private final long realPatchCRC;
 
         public UpsCrc(long inputFileCRC, long outputFileCRC, long patchFileCRC, long realPatchCRC) {
 
@@ -252,7 +257,7 @@ public class UPS extends Patcher {
         }
     }
 
-    final class Pair {
+    static final class Pair {
         private final long value;
         private final long size;
 

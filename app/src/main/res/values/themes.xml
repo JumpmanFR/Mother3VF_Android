@@ -8,11 +8,8 @@
         <item name="android:icon">@drawable/ic_actionbar</item>
     </style>
 
-    <style name="Theme.Transparent" parent="MainTheme">
+    <style name="MainThemeTransparentNoBar" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
-    </style>
-
-    <style name="MainThemeNoBar" parent="Theme.AppCompat.Light.NoActionBar">
     </style>
 </resources>

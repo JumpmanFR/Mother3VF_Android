@@ -1,6 +1,5 @@
 package fr.mother3vf.mother3vf;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,6 +9,7 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.CompoundButton;
 
 import java.io.File;
 import java.text.Collator;
@@ -19,9 +19,12 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import fr.mother3vf.mother3vf.databinding.FileBrowserBinding;
+import fr.mother3vf.mother3vf.databinding.ActivityBrowserBinding;
 
 /*******************************************************************************
  * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)
@@ -31,13 +34,13 @@ import fr.mother3vf.mother3vf.databinding.FileBrowserBinding;
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
  * <p>
- * Contributors:
- * Paul Kratt - MultiPatch app for macOS
- * JumpmanFR - adaptation for MOTHER 3 VF
+ * Developed by JumpmanFR
+ * Inspired from Paul Kratt’s MultiPatch app for macOS
  ******************************************************************************/
-public class FileBrowserActivity extends Activity implements FileBrowserAdapter.ItemClickListener {
-    public static final String SHOW_UPS = "SHOW_UPS";
-    public static final String TARGET_TYPE = "TARGET_TYPE";
+public class FileBrowserActivity extends AppCompatActivity implements FileBrowserAdapter.ItemClickListener, CompoundButton.OnCheckedChangeListener, View.OnClickListener {
+    public static final String DISPLAY_FILTER_NAME = "DISPLAY_FILTER_NAME";
+    public static final String DISPLAY_FILTER = "DISPLAY_FILTER";
+    public static final String TARGET_FILTER = "TARGET_FILTER";
     public static final String TARGET_ICON = "TARGET_ICON";
     public static final String FOLDER = "FOLDER";
     public static final String FILE = "FILE";
@@ -45,53 +48,71 @@ public class FileBrowserActivity extends Activity implements FileBrowserAdapter.
     public static final int BROWSE_FOR_ROM = 1;
     public static final int BROWSE_FOR_PATCH = 2;
 
+    private static final String DISPLAY_ONLY = "DISPLAY_ONLY";
     private static final String CURRENT_FOLDER = "CURRENT_FOLDER";
     private static final String HISTORY = "HISTORY";
 
-    private FileBrowserBinding views;
+    private ActivityBrowserBinding views;
 
     private ArrayList<String> filesList;
     private ArrayList<String> history;
     private String currentFolder;
 
-    private boolean showUps;
+    private boolean displayOnly;
+
+    private String displayTypeName = "";
+    private String displayType = "";
     private String targetType = "";
     private String targetIcon = "";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        views = FileBrowserBinding.inflate(getLayoutInflater());
+        views = ActivityBrowserBinding.inflate(getLayoutInflater());
         setContentView(views.getRoot());
 
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            showUps = extras.getBoolean(SHOW_UPS);
-            targetType = extras.getString(TARGET_TYPE);
-            targetIcon = extras.getString(TARGET_ICON);
-        }
-
-        if (savedInstanceState != null) {
-            history = savedInstanceState.getStringArrayList(HISTORY);
-            getDir(savedInstanceState.getString(CURRENT_FOLDER), false);
-        } else {
-            history = new ArrayList<>();
-            String folder = extras.getString(FOLDER, Environment.getExternalStorageDirectory().getAbsolutePath());
-            File ff = new File(folder);
-            if (ff == null || TextUtils.isEmpty(folder)) {
-                folder = "/";
-            } else if (!ff.exists() || !ff.canRead() || ff.isFile()) {
-                folder = "/";
-            }
-            getDir(folder, true);
+        setSupportActionBar(views.toolbar);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            getSupportActionBar().setDisplayShowTitleEnabled(true);
+            getSupportActionBar().setIcon(R.drawable.ic_actionbar);
         }
 
         views.list.addItemDecoration(new DividerItemDecoration(views.list.getContext(), DividerItemDecoration.VERTICAL));
+
+        Bundle extras = getIntent().getExtras();
+        String startFolder = "";
+        if (extras != null) {
+            displayTypeName = extras.getString(DISPLAY_FILTER_NAME);
+            displayType = extras.getString(DISPLAY_FILTER);
+            targetType = extras.getString(TARGET_FILTER);
+            targetIcon = extras.getString(TARGET_ICON);
+            startFolder = extras.getString(FOLDER, Environment.getExternalStorageDirectory().getAbsolutePath()); // getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath()) ?
+        }
+
+        if (savedInstanceState != null) {
+            displayOnly = savedInstanceState.getBoolean(DISPLAY_ONLY);
+            history = savedInstanceState.getStringArrayList(HISTORY);
+            getDir(savedInstanceState.getString(CURRENT_FOLDER), false);
+        } else {
+            displayOnly = true;
+            history = new ArrayList<>();
+            File ff = new File(startFolder);
+            if (TextUtils.isEmpty(startFolder) || !ff.exists() || !ff.canRead() || ff.isFile()) {
+                startFolder = Environment.getExternalStorageDirectory().getAbsolutePath();
+            }
+            getDir(startFolder, true);
+        }
+        views.dismissButton.setOnClickListener(this);
+        views.showOnlyCheckbox.setText(getBaseContext().getString(R.string.only_show_files).replace("%s", displayTypeName));
+        views.showOnlyCheckbox.setChecked(displayOnly);
+        views.showOnlyCheckbox.setOnCheckedChangeListener(this);
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle state) {
+    protected void onSaveInstanceState(@NonNull Bundle state) {
         super.onSaveInstanceState(state);
+        state.putBoolean(CURRENT_FOLDER, displayOnly);
         state.putString(CURRENT_FOLDER, currentFolder);
         state.putStringArrayList(HISTORY, history);
     }
@@ -122,6 +143,19 @@ public class FileBrowserActivity extends Activity implements FileBrowserAdapter.
         File folder = new File(folderPath);
         File[] files = folder.listFiles();
         if (files != null) {
+
+            if (!folderPath.equals("/") && !(folderPath.equals("/storage/") && !(new File("/").canRead()))) {
+                itemsList.add("⤴️");
+                if (folder.getParent() != null && new File(folder.getParent()).canRead()) {
+                    filesList.add(folder.getParent());
+                } else if (new File("/").canRead()) {
+                    filesList.add("/");
+                } else {
+                    filesList.add("/storage/");
+                }
+            }
+            currentFolder = folderPath;
+
             if (files.length > 0) {
 
                 Arrays.sort(files, new Comparator<Object>() {
@@ -143,69 +177,28 @@ public class FileBrowserActivity extends Activity implements FileBrowserAdapter.
                 });
 
 
-                if (!folderPath.equals("/") && !(folderPath.equals("/storage/") && !(new File(File.separator).canRead()))) {
-                    itemsList.add("⤴️");
-                    if (new File(folder.getParent()).canRead()) {
-                        filesList.add(folder.getParent());
-                    } else if (new File("/").canRead()) {
-                        filesList.add("/");
-                    } else {
-                        filesList.add("/storage/");
-                    }
-                }
-                currentFolder = folderPath;
-
-
                 for (File file : files) {
-                    if (file.isFile()) {
+                    if (file.canRead() && file.isFile()) {
+                        String fileName = file.getName();
                         String fileIcon;
-                        if (Pattern.matches(targetType, file.getName())) {
+                        if (Pattern.matches(targetType, fileName)) {
                             fileIcon = targetIcon;
-                        } else if (file.getName().endsWith(".zip")) {
-                            fileIcon = (Build.VERSION.SDK_INT > 22 ? "\uD83D\uDDDC" : "\uD83D\uDCE6");
+                        } else if (fileName.endsWith(".zip")) {
+                            fileIcon = (Build.VERSION.SDK_INT > 22 ? "\uD83D\uDDDC" : "\uD83D\uDCE6"); // Archive emoji
                         } else {
-                            fileIcon = "\uD83D\uDCC4";
+                            fileIcon = "\uD83D\uDCC4"; // Generic file emoji
                         }
 
-                        int dotPosition = file.getName().lastIndexOf(".");
-                        if (dotPosition != -1) {
-                            String extension = (file.getName().substring(dotPosition)).toLowerCase(Locale.FRENCH);
-                            if (extension != null) {
-                                if ((".ups".equals(extension) && showUps) || (!showUps && !(".ups".equals(extension)))) {
-                                    filesList.add(file.getPath());
-                                    itemsList.add(fileIcon + " " + file.getName());
-                                }
-                            } else if (file.getName().endsWith("/")) {
-                                filesList.add(file.getPath() + "/");
-                                itemsList.add(fileIcon + " " + file.getName() + "/");
-                            } else {
-                                filesList.add(file.getPath());
-                                itemsList.add(fileIcon + " " + file.getName());
-                            }
-                        } else {
+                        if (!displayOnly || Pattern.matches(displayType, fileName)) {
                             filesList.add(file.getPath());
-                            itemsList.add(fileIcon + " " + file.getName());
+                            itemsList.add(fileIcon + " " + fileName);
                         }
-                    } else {
+                    } else if (file.isDirectory()) {
 
                         filesList.add(file.getPath() + "/");
-
-                        itemsList.add("\uD83D\uDCC1 " + file.getName());
+                        itemsList.add("\uD83D\uDCC1 " + file.getName()); // Folder icon
                     }
                 }
-
-            } else {
-                if (!folderPath.equals("/") && !(folderPath.equals("/storage/") && !(new File(File.separator).canRead()))) {
-                    itemsList.add("⤴️");
-                    if (new File(folder.getParent()).canRead()) {
-                        filesList.add(folder.getParent());
-                    } else if (new File("/").canRead()) {
-                        filesList.add("/");
-                    } else {
-                        filesList.add("/storage/");
-                    }
-                }
-                currentFolder = folderPath;
             }
             FileBrowserAdapter fileAdapter = new FileBrowserAdapter(this, itemsList);
             views.list.setLayoutManager(new LinearLayoutManager(this));
@@ -222,47 +215,64 @@ public class FileBrowserActivity extends Activity implements FileBrowserAdapter.
 
     @Override
     public void onItemClick(View view, int position) {
-        File file = new File(filesList.get(position));
-        if (file.isDirectory()) {
-            if (file.canRead()) {
-                getDir(filesList.get(position), true);
-            } else if (file.getAbsolutePath().equals("/storage/emulated") &&
-                    (canReadFile("/storage/emulated/0") || canReadFile("/storage/emulated/legacy") || canReadFile("storage/self/primary"))) {
-                if (canReadFile("/storage/emulated/0")) {
-                    getDir("/storage/emulated/0", true);
-                } else if (canReadFile("/storage/emulated/legacy")) {
-                    getDir("/storage/emulated/legacy", true);
+        if (view.getId() == R.id.list_item) {
+            File file = new File(filesList.get(position));
+            if (file.isDirectory()) {
+                if (file.canRead()) {
+                    getDir(filesList.get(position), true);
+                } else if (file.getAbsolutePath().equals("/storage/emulated") &&
+                        (canReadFile("/storage/emulated/0") || canReadFile("/storage/emulated/legacy") || canReadFile("storage/self/primary"))) {
+                    if (canReadFile("/storage/emulated/0")) {
+                        getDir("/storage/emulated/0", true);
+                    } else if (canReadFile("/storage/emulated/legacy")) {
+                        getDir("/storage/emulated/legacy", true);
+                    } else {
+                        getDir("/storage/self/primary", true);
+                    }
                 } else {
-                    getDir("/storage/self/primary", true);
+                    System.out.println(file.getAbsolutePath());
+
+                    new AlertDialog.Builder(this)
+                            .setIcon(R.mipmap.ic_launcher)
+                            .setTitle("[" + file.getName() + "] " + getResources().getString(R.string.cantRead))
+                            .setPositiveButton("OK",
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                        }
+                                    }).show();
                 }
             } else {
-                System.out.println(file.getAbsolutePath());
+                if (file.canRead()) {
+                    Intent returnIntent = new Intent();
+                    returnIntent.putExtra(FILE, filesList.get(position));
+                    returnIntent.putExtra(FOLDER, currentFolder);
+                    setResult(RESULT_OK, returnIntent);
+                    this.finish();
+                }
 
-                new AlertDialog.Builder(this)
-                        .setIcon(R.mipmap.ic_launcher)
-                        .setTitle("[" + file.getName() + "] " + getResources().getString(R.string.cantRead))
-                        .setPositiveButton("OK",
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                    }
-                                }).show();
             }
-        } else {
-            if (file.canRead()) {
-                Intent returnIntent = new Intent();
-                returnIntent.putExtra(FILE, filesList.get(position));
-                returnIntent.putExtra(FOLDER, currentFolder);
-                setResult(RESULT_OK, returnIntent);
-                this.finish();
-            }
-
         }
 
     }
 
     private boolean canReadFile(String file) {
         return new File(file).exists() && new File(file).canRead();
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+        if (compoundButton.getId() == R.id.showOnlyCheckbox) {
+            displayOnly = b;
+            getDir(currentFolder, false);
+        }
+    }
+
+    @Override
+    public void onClick(View view) {
+        if (view.getId() == R.id.dismissButton) {
+            this.finish();
+        }
     }
 }
 

@@ -20,9 +20,8 @@ import fr.mother3vf.mother3vf.patcher.UPS;
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
  * <p>
- * Contributors:
- * Paul Kratt - MultiPatch app for macOS
- * JumpmanFR - adaptation for MOTHER 3 VF
+ * Developed by JumpmanFR
+ * Inspired from Paul Kratt’s MultiPatch app for macOS
  ******************************************************************************/
 public class PatchingTask extends IntentService {
     public static final String ACTION_PATCH = "fr.mother3vf.mother3vf.action.ACTION_PATCH";
@@ -61,7 +60,7 @@ public class PatchingTask extends IntentService {
             }
             File romFile = new File(romFilePath);
             if (romFile.exists()) {
-                // ÉTAPE 1 : RECHERCHE DU PATCH (+ TÉLÉCHARGEMENT, DÉCOMPRESSION, ETC.)
+                // STEP 1: FINDING THE PATCH FILE (+ DOWNLOADING, UNZIPPING, ETC.)
                 sendMessage(PatchingDialogModel.STEP_RUNNING, getResources().getString(R.string.wait_prepare), getBaseContext());
 
                 PatchFinder patchFinder = new PatchFinder(getBaseContext());
@@ -75,14 +74,14 @@ public class PatchingTask extends IntentService {
                     sendMessage(PatchingDialogModel.STEP_BROWSE, getResources().getString(R.string.patch_not_found), getBaseContext());
                     return;
                 }
-                docFile = patchFinder.findJointDoc(patchFilePath);
+                docFile = patchFinder.findAttachedDoc(patchFilePath);
                 if (!romFile.canWrite()) {
                     sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.cantwrite), docFile, getBaseContext());
                     return;
                 }
-                // ÉTAPE 2 : APPLICATION DU PATCH
+                // STEP 2: APPLYING THE PATCH
                 sendMessage(PatchingDialogModel.STEP_RUNNING, getResources().getString(R.string.wait_patching), getBaseContext());
-                Log.v(PatchingTask.class.getSimpleName(), "Application du patch");
+                Log.v(PatchingTask.class.getSimpleName(), "Applying patch");
                 //int e = MainActivity.upsPatchRom(romFile, patchFile, romFile + ".temp", 0);
 
                 File patchFile = new File (patchFilePath);
@@ -136,12 +135,13 @@ public class PatchingTask extends IntentService {
                 if (successMoveOldRom) {
                     File tempRom = new File(romFilePath + ".temp");
                     successMoveNewRom = tempRom.renameTo(baseRom);
-                    Log.v(PatchingTask.class.getSimpleName(), "Terminé");
+                    Log.v(PatchingTask.class.getSimpleName(), "Done");
                     sendMessage(PatchingDialogModel.STEP_SUCCESS, getResources().getString(R.string.success), docFile, getBaseContext());
                 }
 
                 if (!successMoveOldRom || !successMoveNewRom) {
-                    Log.v(PatchingTask.class.getSimpleName(), "Échec renommages : successMoveOldRom=" + successMoveOldRom + "; successMoveNewRom=" + successMoveNewRom);
+                    //noinspection ConstantConditions
+                    Log.v(PatchingTask.class.getSimpleName(), "Renaming failure: successMoveOldRom=" + successMoveOldRom + "; successMoveNewRom=" + successMoveNewRom);
                     sendMessage(PatchingDialogModel.STEP_SUCCESS, getResources().getString(R.string.cant_change_temp_files), docFile, getBaseContext());
                 }
 

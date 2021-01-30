@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="link">
+        <item name="android:foreground">@drawable/link_ripple</item>
+        <item name="android:background">@drawable/link_bg</item>
+    </style>
+    <style name="row">
+        <item name="android:foreground">@drawable/row_bg</item>
+        <item name="android:background">@drawable/row_ripple</item>
+    </style>
+</resources>

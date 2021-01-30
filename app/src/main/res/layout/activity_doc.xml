@@ -5,33 +5,32 @@
     android:id="@+id/activity_doc"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F9FFFFFF"
+    android:background="#F0FFFFFF"
     tools:context="fr.mother3vf.mother3vf.DocActivity"
     android:orientation="vertical">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="48dp"
+        android:elevation="4dp"
         style="@android:style/Widget.Holo.Light.ActionBar.Solid"
-        app:titleTextAppearance="@android:style/TextAppearance.Holo.Widget.ActionBar.Title">
-    </androidx.appcompat.widget.Toolbar>
+        app:titleTextAppearance="@android:style/TextAppearance.Holo.Widget.ActionBar.Title"/>
 
-        <ScrollView
-            android:id="@+id/scrollView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="4dp"
-            android:layout_marginRight="4dp">
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp">
 
-        <TextView
-            android:id="@+id/doc_text_view"
-            android:textSize="1dp"
-            android:textStyle="bold"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_gravity="center_horizontal"
-            android:typeface="monospace"/>
+    <TextView
+        android:id="@+id/doc_text_view"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:typeface="monospace"/>
     </ScrollView>
 </LinearLayout>

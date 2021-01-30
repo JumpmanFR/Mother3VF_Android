@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.View;
 import android.widget.CompoundButton;
@@ -23,7 +24,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import fr.mother3vf.mother3vf.databinding.MainBinding;
+import fr.mother3vf.mother3vf.databinding.ActivityMainBinding;
 
 /*******************************************************************************
  * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)
@@ -33,13 +34,13 @@ import fr.mother3vf.mother3vf.databinding.MainBinding;
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
  * <p>
- * Contributors:
- * Paul Kratt - MultiPatch app for macOS
- * JumpmanFR - adaptation for MOTHER 3 VF
+ * Developed by JumpmanFR
+ * Inspired from Paul Kratt’s MultiPatch app for macOS
  ******************************************************************************/
 public class MainActivity extends FragmentActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
     public static final String ROM_FORMATS = ".*\\.(gba|agb|bin|jgc|rom)";
+    public static final String ROM_FORMATS_EXTENDED = ".*\\.(gba|agb|bin|jgc|rom|rom\\.original\\d+)";
 
     private static final String CURRENT_FOLDER = "CURRENT_FOLDER";
     private static final String ROM_FILE = "ROM_FILE";
@@ -58,7 +59,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private static final int PERMISSION_REQUEST = 178;
     private static final int NUM_PERMISSIONS = 2;
 
-    private MainBinding views;
+    private ActivityMainBinding views;
 
     private DFragment progressDialog;
 
@@ -80,7 +81,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        views = MainBinding.inflate(getLayoutInflater());
+        views = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(views.getRoot());
 
         ActionBar actionBar = getActionBar(); // Can’t get app name and activity name different without this
@@ -89,7 +90,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         views.romButton.setOnClickListener(this);
         views.applyPatch.setOnClickListener(this);
         views.website.setOnClickListener(this);
-        views.opendoc.setOnClickListener(this);
+        views.openDoc.setOnClickListener(this);
         views.about.setOnClickListener(this);
         views.backupCheckbox.setOnCheckedChangeListener(this);
 
@@ -213,8 +214,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
-            currentFolder = extras.getString((FileBrowserActivity.FOLDER));
             if (extras != null) {
+                currentFolder = extras.getString((FileBrowserActivity.FOLDER));
                 switch (requestCode) {
                     case FileBrowserActivity.BROWSE_FOR_ROM:
                         romFile = extras.getString(FileBrowserActivity.FILE);
@@ -238,7 +239,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         views.applyPatch.setFocusable(hasRom);
         boolean hasDoc = !"".equals(docFile);
         //hasDoc = true;
-        views.opendoc.setVisibility(hasDoc ? View.VISIBLE : View.INVISIBLE);
+        views.openDoc.setVisibility(hasDoc ? View.VISIBLE : View.INVISIBLE);
         views.website.setVisibility(hasDoc ? View.INVISIBLE : View.VISIBLE);
         if (romFile.lastIndexOf("/") > -1) {
             romText.setText(romFile.substring(romFile.lastIndexOf("/") + 1));
@@ -253,9 +254,10 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     public void onClick(View view) {
         if (view.getId() == R.id.romButton) {
             Intent intent = new Intent(this, FileBrowserActivity.class);
-            intent.putExtra(FileBrowserActivity.SHOW_UPS, false);
-            intent.putExtra(FileBrowserActivity.TARGET_TYPE, ROM_FORMATS);
-            intent.putExtra(FileBrowserActivity.TARGET_ICON, "\uD83C\uDFAE");
+            intent.putExtra(FileBrowserActivity.DISPLAY_FILTER, ROM_FORMATS_EXTENDED);
+            intent.putExtra(FileBrowserActivity.DISPLAY_FILTER_NAME, getBaseContext().getString(R.string.only_show_roms));
+            intent.putExtra(FileBrowserActivity.TARGET_FILTER, ROM_FORMATS);
+            intent.putExtra(FileBrowserActivity.TARGET_ICON, "\uD83C\uDFAE"); // Game controller emoji
             if (!"".equals(currentFolder)) {
                 intent.putExtra(FileBrowserActivity.FOLDER, currentFolder);
             }
@@ -280,7 +282,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             Intent i = new Intent(Intent.ACTION_VIEW);
             i.setData(Uri.parse("http://mother3vf.free.fr"));
             startActivity(i);
-        } else if (view.getId() == R.id.opendoc) {
+        } else if (view.getId() == R.id.open_doc) {
             Intent docIntent = new Intent(this, DocActivity.class);
             docIntent.putExtra(DocActivity.DOC_FILE, docFile);
             docIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -316,7 +318,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     showPatchingCanceled();
                 }
                 break;
-            case DIALOG_OVERWRITE: // User has responded whether he wanted to unpatch the already patched ROM
+            case DIALOG_OVERWRITE: // User has responded whether he wanted to "un-patch" the already patched ROM
                 if (response) {
                     patch(false);
                 } else {
@@ -334,12 +336,13 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             case DIALOG_ERROR_PERMISSIONS: // User has closed the permission error alert
                 finish();
                 break;
-            case DIALOG_BROWSE_PATCH: // User has responded whether he wanted to browse for the patching file after the app couldn’t find it
+            case DIALOG_BROWSE_PATCH: // User has responded whether he wanted to browse for the patching file after the app could not find it
                 if (response) {
                     Intent intent = new Intent(this, FileBrowserActivity.class);
-                    intent.putExtra(FileBrowserActivity.SHOW_UPS, true);
-                    intent.putExtra(FileBrowserActivity.TARGET_TYPE, "mother3vf.*\\.ups");
-                    intent.putExtra(FileBrowserActivity.TARGET_ICON, "\uD83C\uDDEB\uD83C\uDDF7");
+                    intent.putExtra(FileBrowserActivity.DISPLAY_FILTER, ".*\\.ups");
+                    intent.putExtra(FileBrowserActivity.DISPLAY_FILTER_NAME, getBaseContext().getString(R.string.only_show_patches));
+                    intent.putExtra(FileBrowserActivity.TARGET_FILTER, "mother3vf.*\\.ups");
+                    intent.putExtra(FileBrowserActivity.TARGET_ICON, "\uD83C\uDDEB\uD83C\uDDF7"); // French flag emoji
                     if (!"".equals(currentFolder)) {
                         intent.putExtra(FileBrowserActivity.FOLDER, currentFolder);
                     }
@@ -396,7 +399,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         views.romButton.setOnClickListener(null);
         views.applyPatch.setOnClickListener(null);
         views.website.setOnClickListener(null);
-        views.opendoc.setOnClickListener(null);
+        views.openDoc.setOnClickListener(null);
         views.about.setOnClickListener(null);
         views.backupCheckbox.setOnCheckedChangeListener(null);
         views = null;
@@ -414,7 +417,9 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 if (progressDialog != null) {
                     progressDialog.dismissAllowingStateLoss();
                 }
-                ((Vibrator)getSystemService(VIBRATOR_SERVICE)).vibrate(40);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    ((Vibrator)getSystemService(VIBRATOR_SERVICE)).vibrate(VibrationEffect.createOneShot(40, VibrationEffect.DEFAULT_AMPLITUDE));
+                }
                 progressDialog = new DFragment();
                 Bundle alertArgs = new Bundle();
                 if (patchingDialogModel.getResultCode() == PatchingDialogModel.STEP_SUCCESS) {
@@ -442,7 +447,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     progressArgs.putBoolean(DFragment.PROGRESS, true);
                     progressDialog.setArguments(progressArgs);
                     progressDialog.setCancelable(false);
-                    //progressDialog.show(getFragmentManager(), DFragment.TAG_PROGRESS);
                     getSupportFragmentManager().beginTransaction().add(progressDialog, DFragment.TAG_PROGRESS).commitAllowingStateLoss();
                 } else {
                     progressDialog.updateMessage(message);

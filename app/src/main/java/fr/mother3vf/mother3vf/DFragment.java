@@ -20,9 +20,8 @@ import androidx.fragment.app.DialogFragment;
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
  * <p>
- * Contributors:
- * Paul Kratt - MultiPatch app for macOS
- * JumpmanFR - adaptation for MOTHER 3 VF
+ * Developed by JumpmanFR
+ * Inspired from Paul Kratt’s MultiPatch app for macOS
  ******************************************************************************/
 public class DFragment extends DialogFragment {
     public static final String ID = "ID";
@@ -46,49 +45,63 @@ public class DFragment extends DialogFragment {
             dialogMessage = savedInstanceState.getString(SAVED_MESSAGE);
             dismissed = savedInstanceState.getBoolean(SAVED_DISMISSED);
         }
-        if (dialogMessage == null) {
-            dialogMessage = getArguments().getString(MESSAGE);
-        }
 
-        if (getArguments().getBoolean(PROGRESS, false)) { // if (PROGRESS is true considering his default value is false)
-            ProgressDialog pd = ProgressDialog.show(getActivity(), getResources().getString(getArguments().getInt(TITLE)),
-                    dialogMessage, true);
-            pd.setIcon(getArguments().getInt(ICON, R.mipmap.ic_launcher));
-            return pd;
-        } else {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
-                    .setIcon(getArguments().getInt(ICON, R.mipmap.ic_launcher))
-                    .setTitle(getArguments().getInt(TITLE, R.string.app_name_dialogs))
-                    .setMessage(HtmlCompat.fromHtml(dialogMessage,HtmlCompat.FROM_HTML_MODE_LEGACY));
-            if (getArguments().getInt(BUTTONS) > 0) { // Positive button
-                builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        ((MainActivity) getActivity()).onDialogResponse(getArguments().getInt(ID), true);
-                    }
-                });
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            if (dialogMessage == null) {
+                dialogMessage = arguments.getString(MESSAGE);
             }
-
-            if (getArguments().getInt(BUTTONS) > 1) { // Negative Button
-                builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        ((MainActivity) getActivity()).onDialogResponse(getArguments().getInt(ID), false);
-                    }
-                });
-            }
-            final AlertDialog dialog = builder.create();
-            dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-                @Override
-                public void onShow(DialogInterface di) {
-                    ((TextView) dialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
+            if (arguments.getBoolean(PROGRESS, false)) { // if (PROGRESS is true considering his default value is false)
+                ProgressDialog pd = ProgressDialog.show(getActivity(), getResources().getString(arguments.getInt(TITLE)),
+                        dialogMessage, true);
+                pd.setIcon(arguments.getInt(ICON, R.mipmap.ic_launcher));
+                return pd;
+            } else {
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
+                        .setIcon(arguments.getInt(ICON, R.mipmap.ic_launcher))
+                        .setTitle(arguments.getInt(TITLE, R.string.app_name_dialogs))
+                        .setMessage(HtmlCompat.fromHtml(dialogMessage, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                if (arguments.getInt(BUTTONS) > 0) { // Positive button
+                    builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            respondToActivity(true);
+                        }
+                    });
                 }
-            });
-            return dialog;
+
+                if (arguments.getInt(BUTTONS) > 1) { // Negative Button
+                    builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            respondToActivity(false);
+                        }
+                    });
+                }
+                final AlertDialog dialog = builder.create();
+                dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                    @Override
+                    public void onShow(DialogInterface di) {
+                        ((TextView) dialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
+                    }
+                });
+                return dialog;
+            }
+        } else {
+            return new AlertDialog.Builder(getActivity())
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle(R.string.error)
+                    .setMessage(R.string.unknown_error).create();
+        }
+    }
+
+    private void respondToActivity(boolean response) {
+        if (getActivity() != null && getArguments() != null) {
+            ((MainActivity) getActivity()).onDialogResponse(getArguments().getInt(ID), response);
         }
     }
 
     @Override
     public void onCancel(@NonNull DialogInterface dialog) {
-        ((MainActivity) getActivity()).onDialogResponse(getArguments().getInt(ID), false);
+        respondToActivity(false);
     }
 
     @Override
