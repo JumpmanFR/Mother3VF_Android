@@ -8,28 +8,25 @@
     android:background="#F0FFFFFF"
     tools:ignore="Overdraw">
 
-    <androidx.appcompat.widget.Toolbar
+    <Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/path"
-        style="@android:style/Widget.Holo.Light.ActionBar.Solid"
-        app:titleTextAppearance="@android:style/TextAppearance.Holo.Widget.ActionBar.Title"
-        android:elevation="4dp">
+        style="@style/CustomBar"
+        app:titleTextAppearance="@android:style/TextAppearance.Holo.Widget.ActionBar.Title">
 
         <ImageButton
             android:id="@+id/dismissButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
-            android:background="?selectableItemBackgroundBorderless"
+            android:background="?android:selectableItemBackgroundBorderless"
             android:layout_marginHorizontal="6dp"
             android:layout_gravity="center_horizontal|end"
             android:contentDescription="@string/browser_dismiss" />
-    </androidx.appcompat.widget.Toolbar>
+    </Toolbar>
 
     <TextView
         android:id="@+id/path"

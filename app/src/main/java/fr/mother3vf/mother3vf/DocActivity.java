@@ -1,6 +1,8 @@
 package fr.mother3vf.mother3vf;
 
 import android.annotation.SuppressLint;
+import android.app.ActionBar;
+import android.app.Activity;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.text.util.Linkify;
@@ -17,8 +19,6 @@ import java.util.Comparator;
 import java.util.regex.Pattern;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
 import fr.mother3vf.mother3vf.databinding.ActivityDocBinding;
 
 /*******************************************************************************
@@ -32,7 +32,7 @@ import fr.mother3vf.mother3vf.databinding.ActivityDocBinding;
  * Developed by JumpmanFR
  * Inspired from Paul Kratt’s MultiPatch app for macOS
  ******************************************************************************/
-public class DocActivity extends AppCompatActivity implements View.OnLayoutChangeListener, View.OnTouchListener, View.OnClickListener {
+public class DocActivity extends Activity implements View.OnLayoutChangeListener, View.OnTouchListener, View.OnClickListener {
 
     private static final int MIN_FONT_SIZE = 6;
     private static final int MAX_FONT_SIZE = 20;
@@ -56,11 +56,11 @@ public class DocActivity extends AppCompatActivity implements View.OnLayoutChang
         views = ActivityDocBinding.inflate(getLayoutInflater());
         setContentView(views.getRoot());
 
-        setSupportActionBar(views.toolbar);
-        ActionBar actionBar = getSupportActionBar();
+        setActionBar(views.toolbar);
+        ActionBar actionBar = getActionBar();
         if (actionBar != null) {
-            getSupportActionBar().setDisplayShowTitleEnabled(true);
-            getSupportActionBar().setIcon(R.drawable.ic_actionbar);
+            actionBar.setDisplayShowTitleEnabled(true);
+            actionBar.setIcon(R.drawable.ic_actionbar);
         }
 
         views.toolbar.setOnClickListener(this);

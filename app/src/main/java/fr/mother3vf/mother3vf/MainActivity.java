@@ -84,8 +84,13 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         views = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(views.getRoot());
 
-        ActionBar actionBar = getActionBar(); // Can’t get app name and activity name different without this
-        actionBar.setTitle(R.string.main_view_title);
+        setActionBar(views.toolbar);
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle(R.string.main_view_title);
+            actionBar.setDisplayShowTitleEnabled(true);
+            actionBar.setIcon(R.drawable.ic_actionbar);
+        }
 
         views.romButton.setOnClickListener(this);
         views.applyPatch.setOnClickListener(this);

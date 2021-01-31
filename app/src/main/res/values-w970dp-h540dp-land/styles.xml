@@ -9,8 +9,7 @@
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_weight">1</item>
     </style>
-    <style name="buttons_block_margin">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_weight">1</item>
+    <style name="buttons_block_apply">
+        <item name="layout_constraintWidth_percent">.5</item>
     </style>
 </resources>

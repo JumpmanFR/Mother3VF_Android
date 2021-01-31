@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="MainTheme" parent="@android:style/Theme.Material.Light">
-        <item name="android:actionBarTheme">@style/ActionBarTheme</item>
+    <style name="MainThemeCustomBar" parent="@android:style/Theme.Material.Light.NoActionBar">
     </style>
 
-    <style name="ActionBarTheme" parent="@android:style/Theme.Holo.Light">
-        <item name="android:icon">@drawable/ic_actionbar</item>
-    </style>
-
-    <style name="MainThemeTransparentNoBar" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="MainThemeTransparentCustomBar" parent="@android:style/Theme.Material.Light.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+    <style name="CustomBar" parent="@android:style/Widget.Holo.Light.ActionBar.Solid">
+        <item name="android:layout_height">48dp</item>
+        <item name="android:titleTextAppearance">@style/CustomBarTitle</item>
+        <item name="android:elevation">4dp</item>
+    </style>
+
+    <style name="CustomBarTitle" parent="@android:style/TextAppearance.Holo.Widget.ActionBar.Title">
+        <item name="android:textStyle">normal</item>
     </style>
 </resources>

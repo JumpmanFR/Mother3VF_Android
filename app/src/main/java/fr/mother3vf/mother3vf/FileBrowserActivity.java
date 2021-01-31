@@ -1,5 +1,7 @@
 package fr.mother3vf.mother3vf;
 
+import android.app.ActionBar;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -20,8 +22,6 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import fr.mother3vf.mother3vf.databinding.ActivityBrowserBinding;
@@ -37,7 +37,7 @@ import fr.mother3vf.mother3vf.databinding.ActivityBrowserBinding;
  * Developed by JumpmanFR
  * Inspired from Paul Kratt’s MultiPatch app for macOS
  ******************************************************************************/
-public class FileBrowserActivity extends AppCompatActivity implements FileBrowserAdapter.ItemClickListener, CompoundButton.OnCheckedChangeListener, View.OnClickListener {
+public class FileBrowserActivity extends Activity implements FileBrowserAdapter.ItemClickListener, CompoundButton.OnCheckedChangeListener, View.OnClickListener {
     public static final String DISPLAY_FILTER_NAME = "DISPLAY_FILTER_NAME";
     public static final String DISPLAY_FILTER = "DISPLAY_FILTER";
     public static final String TARGET_FILTER = "TARGET_FILTER";
@@ -71,11 +71,11 @@ public class FileBrowserActivity extends AppCompatActivity implements FileBrowse
         views = ActivityBrowserBinding.inflate(getLayoutInflater());
         setContentView(views.getRoot());
 
-        setSupportActionBar(views.toolbar);
-        ActionBar actionBar = getSupportActionBar();
+        setActionBar(views.toolbar);
+        ActionBar actionBar = getActionBar();
         if (actionBar != null) {
-            getSupportActionBar().setDisplayShowTitleEnabled(true);
-            getSupportActionBar().setIcon(R.drawable.ic_actionbar);
+            actionBar.setDisplayShowTitleEnabled(true);
+            actionBar.setIcon(R.drawable.ic_actionbar);
         }
 
         views.list.addItemDecoration(new DividerItemDecoration(views.list.getContext(), DividerItemDecoration.VERTICAL));

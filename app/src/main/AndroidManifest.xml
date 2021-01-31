@@ -14,7 +14,7 @@
         android:requestLegacyExternalStorage="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/MainTheme"
+        android:theme="@style/MainThemeCustomBar"
         android:fullBackupContent="@xml/backup_descriptor"
         android:supportsRtl="true">
         <activity
@@ -30,14 +30,14 @@
         <activity
             android:name=".FileBrowserActivity"
             android:label="@string/browser_title"
-            android:theme="@style/MainThemeTransparentNoBar" />
+            android:theme="@style/MainThemeTransparentCustomBar" />
 
         <service android:name=".PatchingTask" />
 
         <activity
             android:name=".DocActivity"
             android:label="@string/doc_title"
-            android:theme="@style/MainThemeTransparentNoBar" />
+            android:theme="@style/MainThemeTransparentCustomBar" />
     </application>
 
 </manifest>

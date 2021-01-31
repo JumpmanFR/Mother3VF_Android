@@ -9,12 +9,10 @@
     tools:context="fr.mother3vf.mother3vf.DocActivity"
     android:orientation="vertical">
 
-    <androidx.appcompat.widget.Toolbar
+    <Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:elevation="4dp"
-        style="@android:style/Widget.Holo.Light.ActionBar.Solid"
+        style="@style/CustomBar"
         app:titleTextAppearance="@android:style/TextAppearance.Holo.Widget.ActionBar.Title"/>
 
     <ScrollView

@@ -140,7 +140,6 @@ public class PatchingTask extends IntentService {
                 }
 
                 if (!successMoveOldRom || !successMoveNewRom) {
-                    //noinspection ConstantConditions
                     Log.v(PatchingTask.class.getSimpleName(), "Renaming failure: successMoveOldRom=" + successMoveOldRom + "; successMoveNewRom=" + successMoveNewRom);
                     sendMessage(PatchingDialogModel.STEP_SUCCESS, getResources().getString(R.string.cant_change_temp_files), docFile, getBaseContext());
                 }
