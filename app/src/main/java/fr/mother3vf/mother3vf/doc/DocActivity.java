@@ -1,4 +1,4 @@
-package fr.mother3vf.mother3vf;
+package fr.mother3vf.mother3vf.doc;
 
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.regex.Pattern;
 
 import androidx.annotation.NonNull;
+import fr.mother3vf.mother3vf.R;
 import fr.mother3vf.mother3vf.databinding.ActivityDocBinding;
 
 /*******************************************************************************

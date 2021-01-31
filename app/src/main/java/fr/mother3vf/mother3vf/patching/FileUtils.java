@@ -1,4 +1,4 @@
-package fr.mother3vf.mother3vf;
+package fr.mother3vf.mother3vf.patching;
 
 import android.util.Log;
 

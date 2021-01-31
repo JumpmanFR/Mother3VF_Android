@@ -1,4 +1,4 @@
-package fr.mother3vf.mother3vf;
+package fr.mother3vf.mother3vf.patching;
 
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -15,6 +15,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import fr.mother3vf.mother3vf.R;
 
 
 /*******************************************************************************
@@ -138,7 +140,9 @@ public class PatchFinder {
             }
             return fileToReturn;
         } catch (Exception e) {
-            Log.e("tag", e.getMessage());
+            if (e != null) {
+                Log.e("tag", e.getMessage());
+            }
         } finally {
             try {
                 if (in != null) {

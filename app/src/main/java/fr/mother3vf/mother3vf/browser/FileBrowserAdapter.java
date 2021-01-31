@@ -1,4 +1,4 @@
-package fr.mother3vf.mother3vf;
+package fr.mother3vf.mother3vf.browser;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -10,6 +10,7 @@ import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import fr.mother3vf.mother3vf.R;
 
 /*******************************************************************************
  * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)

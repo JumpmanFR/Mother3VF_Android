@@ -1,4 +1,4 @@
-package fr.mother3vf.mother3vf;
+package fr.mother3vf.mother3vf.mainactivity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import java.util.Locale;
 
 import androidx.core.view.ViewCompat;
+import fr.mother3vf.mother3vf.R;
 
 
 /*******************************************************************************

@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F0FFFFFF"
-    tools:context="fr.mother3vf.mother3vf.DocActivity"
+    tools:context="fr.mother3vf.mother3vf.doc.DocActivity"
     android:orientation="vertical">
 
     <Toolbar

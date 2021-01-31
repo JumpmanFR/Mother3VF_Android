@@ -1,4 +1,4 @@
-package fr.mother3vf.mother3vf;
+package fr.mother3vf.mother3vf.patching;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,8 +10,11 @@ import java.io.IOException;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.JobIntentService;
-import fr.mother3vf.mother3vf.patcher.PatchException;
-import fr.mother3vf.mother3vf.patcher.UPS;
+import fr.mother3vf.mother3vf.mainactivity.MainActivity;
+import fr.mother3vf.mother3vf.mainactivity.PatchingDialogModel;
+import fr.mother3vf.mother3vf.R;
+import fr.mother3vf.mother3vf.patching.upspatcher.PatchException;
+import fr.mother3vf.mother3vf.patching.upspatcher.UPS;
 
 
 /*******************************************************************************
@@ -25,7 +28,7 @@ import fr.mother3vf.mother3vf.patcher.UPS;
  * Developed by JumpmanFR
  * Inspired from Paul Kratt’s MultiPatch app for macOS
  ******************************************************************************/
-public class PatchingTask extends JobIntentService { // TODO JobIntentService
+public class PatchingTask extends JobIntentService {
     public static final String ACTION_PATCH = "fr.mother3vf.mother3vf.action.ACTION_PATCH";
 
     public static final int PATCHING_JOB_ID = 10000;
