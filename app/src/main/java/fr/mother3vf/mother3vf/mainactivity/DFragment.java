@@ -2,10 +2,11 @@ package fr.mother3vf.mother3vf.mainactivity;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.method.LinkMovementMethod;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -35,82 +36,62 @@ public class DFragment extends DialogFragment {
     public static final String TAG_PROGRESS = "PROGRESS";
 
     private static final String SAVED_MESSAGE = "SAVED_MESSAGE";
+    private static final String SAVED_IS_PROGRESS = "SAVED_IS_PROGRESS";
     private static final String SAVED_DISMISSED = "SAVED_DISMISSED";
 
     private String dialogMessage;
+    private boolean isProgress;
     private boolean dismissed = false;
 
     @NonNull
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
+        boolean newDialog = (savedInstanceState == null);
+        if (!newDialog) {
             dialogMessage = savedInstanceState.getString(SAVED_MESSAGE);
+            isProgress = savedInstanceState.getBoolean(SAVED_IS_PROGRESS);
             dismissed = savedInstanceState.getBoolean(SAVED_DISMISSED);
         }
 
         Bundle arguments = getArguments();
         if (arguments != null) {
-            if (dialogMessage == null) {
+            if (newDialog) {
                 dialogMessage = arguments.getString(MESSAGE);
+                isProgress = arguments.getBoolean(PROGRESS);
             }
-            if (arguments.getBoolean(PROGRESS, false)) //noinspection SpellCheckingInspection
-            { // if (PROGRESS is true considering his default value is false)
 
-                /* TODO
-                Reprendre 2ᵉ réponse de https://stackoverflow.com/questions/45373007/progressdialog-is-deprecated-what-is-the-alternate-one-to-use
-                Factoriser la création d’un AlertDialog avec la partie else
-                 */
+            AlertDialog.Builder builder = new AlertDialog.Builder(getContext())
+                    .setIcon(arguments.getInt(ICON, R.mipmap.ic_launcher))
+                    .setTitle(arguments.getInt(TITLE, R.string.app_name_dialogs));
 
-                ProgressDialog pd = ProgressDialog.show(getActivity(), getResources().getString(arguments.getInt(TITLE)),
-                        dialogMessage, true);
-                pd.setIcon(arguments.getInt(ICON, R.mipmap.ic_launcher));
-                return pd;
-                /*AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
-                        .setIcon(arguments.getInt(ICON, R.mipmap.ic_launcher))
-                        .setTitle(arguments.getInt(TITLE, arguments.getInt(TITLE)))
-                        .setMessage(HtmlCompat.fromHtml(dialogMessage, HtmlCompat.FROM_HTML_MODE_LEGACY));
-                ProgressBar pb = new ProgressBar(getActivity(), null, android.R.attr.progressBarStyleLarge);
-                ConstraintLayout layout = getActivity().findViewById(R.id.inside_view);
-                ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(100,100);
-                //params.addRule(RelativeLayout.CENTER_IN_PARENT);
-                layout.addView(pb, params);
-                pb.setVisibility(View.VISIBLE);
-                final AlertDialog dialog = builder.create();
-                dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-                    @Override
-                    public void onShow(DialogInterface di) {
-                        ((TextView) dialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
-                    }
-                });
-                return dialog;*/
+            if (isProgress) {
+                View inflate = LayoutInflater.from(getContext()).inflate(R.layout.progress_dialog, null);
+                ((TextView) inflate.findViewById(R.id.progress_message)).setText(dialogMessage);
+                builder.setView(inflate);
             } else {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
-                        .setIcon(arguments.getInt(ICON, R.mipmap.ic_launcher))
-                        .setTitle(arguments.getInt(TITLE, R.string.app_name_dialogs))
-                        .setMessage(HtmlCompat.fromHtml(dialogMessage, HtmlCompat.FROM_HTML_MODE_LEGACY));
-                if (arguments.getInt(BUTTONS) > 0) { // Positive button
-                    builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            respondToActivity(true);
-                        }
-                    });
-                }
-
-                if (arguments.getInt(BUTTONS) > 1) { // Negative Button
-                    builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            respondToActivity(false);
-                        }
-                    });
-                }
-                final AlertDialog dialog = builder.create();
-                dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-                    @Override
-                    public void onShow(DialogInterface di) {
-                        ((TextView) dialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
-                    }
-                });
-                return dialog;
+                builder.setMessage(HtmlCompat.fromHtml(dialogMessage, HtmlCompat.FROM_HTML_MODE_LEGACY));
             }
+
+            DialogInterface.OnClickListener clickListener = new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    respondToActivity(which == DialogInterface.BUTTON_POSITIVE);
+                }
+            };
+            if (arguments.getInt(BUTTONS) > 0) { // Positive button
+                builder.setPositiveButton(R.string.ok, clickListener);
+            }
+            if (arguments.getInt(BUTTONS) > 1) { // Negative Button
+                builder.setNegativeButton(R.string.cancel, clickListener);
+            }
+
+            final AlertDialog dialog = builder.create();
+
+            dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                @Override
+                public void onShow(DialogInterface di) {
+                   ((TextView) dialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
+                }
+            });
+            return dialog;
         } else {
             return new AlertDialog.Builder(getActivity())
                     .setIcon(android.R.drawable.ic_dialog_alert)
@@ -134,6 +115,7 @@ public class DFragment extends DialogFragment {
     public void onSaveInstanceState(@NonNull Bundle state) {
         super.onSaveInstanceState(state);
         state.putString(SAVED_MESSAGE, dialogMessage);
+        state.putBoolean(SAVED_IS_PROGRESS, isProgress);
         state.putBoolean(SAVED_DISMISSED, dismissed);
     }
 
@@ -147,9 +129,13 @@ public class DFragment extends DialogFragment {
     }
 
     private void refreshView() {
-        Dialog dialog = getDialog();
+        AlertDialog dialog = (AlertDialog) getDialog();
         if (dialog != null) {
-            ((AlertDialog) dialog).setMessage(dialogMessage);
+            if (isProgress) {
+                ((TextView) dialog.findViewById(R.id.progress_message)).setText(dialogMessage);
+            } else {
+                dialog.setMessage(HtmlCompat.fromHtml(dialogMessage, HtmlCompat.FROM_HTML_MODE_LEGACY));
+            }
         }
     }
 
