@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License
 along with UniPatcher.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package fr.mother3vf.mother3vf.patcher;
+package fr.mother3vf.mother3vf.patching.upspatcher;
 
 import java.io.IOException;
 import java.io.InputStream;

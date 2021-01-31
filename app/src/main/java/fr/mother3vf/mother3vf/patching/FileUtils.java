@@ -16,6 +16,8 @@ import java.net.URLDecoder;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import androidx.annotation.NonNull;
+
 
 /*******************************************************************************
  * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)
@@ -38,6 +40,7 @@ public class FileUtils {
      * @return the wanted file, as an absolute path
      * @throws IOException if file accesses fail
      */
+    @NonNull
     public static String unzip(String fileString, String wantedFile, String bonusFile) throws IOException {
         File zipFile = new File(fileString);
         String targetDirectory = zipFile.getParent();

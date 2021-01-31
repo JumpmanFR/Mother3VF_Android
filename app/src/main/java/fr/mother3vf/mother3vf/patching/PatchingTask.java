@@ -63,19 +63,22 @@ public class PatchingTask extends JobIntentService {
         if (ACTION_PATCH.equals(intent.getAction())) {
             resultReceiver = intent.getParcelableExtra(RECEIVER);
             String romFilePath = intent.getStringExtra(ROM_FILE);
+            if (romFilePath == null) {
+                romFilePath = "";
+            }
             boolean backup = intent.getBooleanExtra(BACKUP, true);
             boolean checkAlreadyPatched = intent.getBooleanExtra(CHECK_ALREADY_PATCHED, true);
             String docFile = "";
-            if (romFilePath != null && romFilePath.toLowerCase().endsWith(".zip")) {
+            if (romFilePath.toLowerCase().endsWith(".zip")) {
                 sendMessage(PatchingDialogModel.STEP_RUNNING, getResources().getString(R.string.wait_unzip_rom));
                 try {
                     romFilePath = FileUtils.unzip(romFilePath, MainActivity.ROM_FORMATS, "");
                     if ("".equals(romFilePath)) {
-                        sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.rom_zip_not_found));
+                        sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.result_rom_zip_not_found));
                         return;
                     }
                 } catch (IOException e) {
-                    sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.rom_zip_error));
+                    sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.result_rom_zip_error));
                     return;
                 }
             }
@@ -92,12 +95,12 @@ public class PatchingTask extends JobIntentService {
                     patchFilePath = patchFinder.findAndSmartSelectInMainFolders(romFile.getParentFile(), getApplicationContext());
                 }
                 if (patchFilePath == null || "".equals(patchFilePath)) {
-                    sendMessage(PatchingDialogModel.STEP_BROWSE, getResources().getString(R.string.patch_not_found));
+                    sendMessage(PatchingDialogModel.STEP_BROWSE, getResources().getString(R.string.pending_patch_not_found));
                     return;
                 }
                 docFile = patchFinder.findAttachedDoc(patchFilePath);
                 if (!romFile.canWrite()) {
-                    sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.cantwrite), docFile);
+                    sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.result_cantwrite), docFile);
                     return;
                 }
                 // STEP 2: APPLYING THE PATCH
@@ -112,7 +115,7 @@ public class PatchingTask extends JobIntentService {
                     try {
                         UPS.UpsCrc crc = UPS.readUpsCrc(getBaseContext(), patchFile);
                         if (crc.getOutputFileCRC() == org.apache.commons.io.FileUtils.checksumCRC32(romFile)) {
-                            sendMessage(PatchingDialogModel.STEP_ALREADY, getResources().getString(R.string.already_exists), patchFilePath);
+                            sendMessage(PatchingDialogModel.STEP_ALREADY, getResources().getString(R.string.pending_already_exists), patchFilePath);
                             return;
                         }
                     } catch (Exception ignored) {
@@ -157,16 +160,17 @@ public class PatchingTask extends JobIntentService {
                     File tempRom = new File(romFilePath + ".temp");
                     successMoveNewRom = tempRom.renameTo(baseRom);
                     Log.v(PatchingTask.class.getSimpleName(), "Done");
-                    sendMessage(PatchingDialogModel.STEP_SUCCESS, getResources().getString(R.string.success), docFile);
+                    sendMessage(PatchingDialogModel.STEP_SUCCESS, getResources().getString(R.string.result_success), docFile);
                 }
 
                 if (!successMoveOldRom || !successMoveNewRom) {
+                    //noinspection ConstantConditions
                     Log.v(PatchingTask.class.getSimpleName(), "Renaming failure: successMoveOldRom=" + successMoveOldRom + "; successMoveNewRom=" + successMoveNewRom);
-                    sendMessage(PatchingDialogModel.STEP_SUCCESS, getResources().getString(R.string.cant_change_temp_files), docFile);
+                    sendMessage(PatchingDialogModel.STEP_SUCCESS, getResources().getString(R.string.result_cant_change_temp_files), docFile);
                 }
 
             } else {
-                sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.rom_not_found), docFile);
+                sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.result_rom_not_found), docFile);
             }
         }
     }

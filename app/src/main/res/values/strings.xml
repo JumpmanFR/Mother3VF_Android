@@ -15,6 +15,7 @@
     <string name="site_btn">mother3vf.free.fr</string>
     <string name="doc_btn">Documentation</string>
     <string name="doc_title">À propos de notre traduction</string>
+    <string name="about"><![CDATA[Une traduction française de MOTHER 3 gratuite, entièrement réalisée par des fans.<br/><br/>Par JumpmanFR, Anthiflo, Zeilk, Lostindark et Krummi.<br/><br/>App conçue par JumpmanFR et Anthiflo.<br/><br/><a href="http://mother3vf.free.fr">Site Web</a>]]></string>
     <string name="doc_error">Impossible d’afficher la documentation.</string>
     <string name="cantRead">Impossible d’accéder au dossier.</string>
     <string name="browse">Choisir la ROM…</string>
@@ -26,10 +27,6 @@
     <string name="only_show_patches">patchs UPS</string>
     <string name="browser_dismiss">Fermer</string>
     <string name="warning">Attention</string>
-    <string name="already_exists">Votre ROM a déjà été traduite. Voulez-vous la remettre dans sa langue d’origine ?</string>
-    <string name="bad_compression_format">Le fichier sur lequel vous êtes sur le point d’appliquer le patch ressemble à une archive compressée d’un type qui n’est pas pris en charge.\nIl est peut-être nécessaire d’extraire d’abord son contenu à l’aide d’un outil dédié.\nAppliquer le patch malgré tout ?</string>
-    <string name="zipped_rom_ask">Le fichier que vous avez sélectionné semble être une archive zip compressée.\nL’application va d’abord décompresser son contenu avant d’y appliquer le patch.</string>
-    <string name="nopatch">Application du patch annulée.</string>
     <string name="wait">Veuillez patienter</string>
     <string name="wait_unzip_rom">Décompression de la ROM…</string>
     <string name="wait_prepare">Recherche du patch…</string>
@@ -37,14 +34,17 @@
     <string name="wait_default_patch">Patch non trouvé : recherche dans les fichiers de l’application…</string>
     <string name="wait_unzip_patch">Décompression du patch…</string>
     <string name="wait_patching">Application du patch…</string>
-    <string name="success"><![CDATA[<strong>Votre ROM de MOTHER 3 a été patchée avec succès !</strong><br/>Vous pouvez y jouer directement sur cet appareil à l’aide d’un émulateur GBA.<br/><a href="market://search?q=émulateur%20gba">Voir les émulateurs GBA disponibles sur Google Play</a><br/>Bon jeu !]]></string>
-    <string name="cant_change_temp_files">L’application du patch s’est terminée mais un problème est survenu lors de la finalisation. Des fichiers temporaires n’ont pas pu être nettoyés. Vérifiez les autorisations d’accès aux fichiers.</string>
-    <string name="patch_not_found">Le fichier de patch (mother3vf.ups) n’a pas été trouvé. Voulez-vous spécifier son emplacement ?</string>
-    <string name="rom_not_found">La ROM que vous avez spécifiée est introuvable.</string>
-    <string name="rom_zip_error">Une erreur s’est produite lors de la décompression de l’archive zip contenant la ROM.\nEssayez de la décompresser à l’aide d’un outil dédié.</string>
-    <string name="rom_zip_not_found">Aucune ROM n’a été trouvée dans l’archive zip que vous avez spécifiée.</string>
-    <string name="about"><![CDATA[Une traduction française de MOTHER 3 gratuite, entièrement réalisée par des fans.<br/><br/>Par JumpmanFR, Anthiflo, Zeilk, Lostindark et Krummi.<br/><br/>App conçue par JumpmanFR et Anthiflo.<br/><br/><a href="http://mother3vf.free.fr">Site Web</a>]]></string>
-    <string name="cantwrite">Impossible d’accéder au fichier de sortie. Si vous utilisez Android KitKat ou Lollipop, déplacez votre ROM sur votre stockage interne.</string>
+    <string name="alert_bad_compression_format">Le fichier sur lequel vous êtes sur le point d’appliquer le patch ressemble à une archive compressée d’un type qui n’est pas pris en charge.\nIl est peut-être nécessaire d’extraire d’abord son contenu à l’aide d’un outil dédié.\nAppliquer le patch malgré tout ?</string>
+    <string name="alert_zipped_rom_ask">Le fichier que vous avez sélectionné semble être une archive zip compressée.\nL’application va d’abord décompresser son contenu avant d’y appliquer le patch.</string>
+    <string name="pending_already_exists">Votre ROM a déjà été traduite. Voulez-vous la remettre dans sa langue d’origine ?</string>
+    <string name="pending_patch_not_found">Le fichier de patch (mother3vf.ups) n’a pas été trouvé. Voulez-vous spécifier son emplacement ?</string>
+    <string name="result_nopatch">Application du patch annulée.</string>
+    <string name="result_success"><![CDATA[<strong>Votre ROM de MOTHER 3 a été patchée avec succès !</strong><br/>Vous pouvez y jouer directement sur cet appareil à l’aide d’un émulateur GBA.<br/><a href="market://search?q=émulateur%20gba">Voir les émulateurs GBA disponibles sur Google Play</a><br/>Bon jeu !]]></string>
+    <string name="result_cant_change_temp_files">L’application du patch s’est terminée mais un problème est survenu lors de la finalisation. Des fichiers temporaires n’ont pas pu être nettoyés. Vérifiez les autorisations d’accès aux fichiers.</string>
+    <string name="result_rom_not_found">La ROM que vous avez spécifiée est introuvable.</string>
+    <string name="result_rom_zip_error">Une erreur s’est produite lors de la décompression de l’archive zip contenant la ROM.\nEssayez de la décompresser à l’aide d’un outil dédié.</string>
+    <string name="result_rom_zip_not_found">Aucune ROM n’a été trouvée dans l’archive zip que vous avez spécifiée.</string>
+    <string name="result_cantwrite">Impossible d’accéder au fichier de sortie. Si vous utilisez Android KitKat ou Lollipop, déplacez votre ROM sur votre stockage interne.</string>
     <!-- UPS Errors -->
     <string name="patching_error_io">Une erreur est survenue lors de l’accès aux fichiers :\n</string>
     <string name="patching_error_incorrect_rom">Erreur lors de l’application du patch : la ROM que vous avez spécifiée est incorrecte.\nVous devez fournir une ROM japonaise de MOTHER 3 d’origine, non modifiée.</string>

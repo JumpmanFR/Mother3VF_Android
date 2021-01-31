@@ -251,8 +251,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     public void onPatchingResult(int resultCode, Bundle resultData) {
         if (resultCode == PatchingTask.REFRESH_DIALOG) {
             dialogModel.set(resultData.getInt(PatchingTask.RESULT_STEP),
-                    resultData.getString(PatchingTask.RESULT_MSG,
-                            resultData.getString(PatchingTask.RESULT_FILE)));
+                    resultData.getString(PatchingTask.RESULT_MSG),
+                    resultData.getString(PatchingTask.RESULT_FILE));
             refreshPatchingDialog();
         }
     }
@@ -300,7 +300,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 args.putInt(DFragment.ID, DIALOG_CONFIRM_PATCH);
                 args.putInt(DFragment.ICON, android.R.drawable.ic_dialog_alert);
                 args.putInt(DFragment.TITLE, R.string.warning);
-                args.putString(DFragment.MESSAGE, getResources().getString(lowerName.endsWith(".zip") ? R.string.zipped_rom_ask : R.string.bad_compression_format));
+                args.putString(DFragment.MESSAGE, getResources().getString(lowerName.endsWith(".zip") ? R.string.alert_zipped_rom_ask : R.string.alert_bad_compression_format));
                 args.putInt(DFragment.BUTTONS, 2);
                 dFragment.setArguments(args);
                 dFragment.show(getSupportFragmentManager(), "");
@@ -416,7 +416,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         dialogModel.reset();
         DialogFragment dFragment = new DFragment();
         Bundle args = new Bundle();
-        args.putString(DFragment.MESSAGE, getResources().getString(R.string.nopatch));
+        args.putString(DFragment.MESSAGE, getResources().getString(R.string.result_nopatch));
         args.putInt(DFragment.BUTTONS, 1);
         dFragment.setArguments(args);
         dFragment.show(getSupportFragmentManager(), "");

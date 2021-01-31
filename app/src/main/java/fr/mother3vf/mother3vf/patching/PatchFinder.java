@@ -140,9 +140,7 @@ public class PatchFinder {
             }
             return fileToReturn;
         } catch (Exception e) {
-            if (e != null) {
-                Log.e("tag", e.getMessage());
-            }
+            e.printStackTrace();
         } finally {
             try {
                 if (in != null) {
