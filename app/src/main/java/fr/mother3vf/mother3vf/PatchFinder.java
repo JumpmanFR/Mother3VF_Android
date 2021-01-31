@@ -37,10 +37,10 @@ public class PatchFinder {
     private static final String PATCH_FILE_TO_FIND = "mother3vf.*\\.ups";
     private static final String DOC_FILE_TO_FIND = "doc_mother3vf.*\\.txt";
 
-    private final Context context;
+    private final PatchingTask.PatchingCallback patchingCallback;
 
-    public PatchFinder(Context ctx) {
-        this.context = ctx;
+    public PatchFinder(PatchingTask.PatchingCallback pc) {
+        this.patchingCallback = pc;
         EXCLUDE_LIST = new ArrayList<>();
         EXCLUDE_LIST.add("/etc");
         EXCLUDE_LIST.add("/proc");
@@ -62,7 +62,7 @@ public class PatchFinder {
             return downloaded;
         }
 
-        PatchingTask.sendMessage(PatchingDialogModel.STEP_RUNNING, context.getString(R.string.wait_default_patch), context);
+        patchingCallback.sendMessage(R.string.wait_default_patch);
         return findInAssets(context); // Third attempt: searching in assets
     }
 
@@ -179,13 +179,13 @@ public class PatchFinder {
      * @return the extracted patch, as an absolute path
      */
     private String downloadFromSite(File destination) {
-        PatchingTask.sendMessage(PatchingDialogModel.STEP_RUNNING, context.getString(R.string.wait_download), context);
+        patchingCallback.sendMessage(R.string.wait_download);
         String downloadedZipFile = FileUtils.downloadFile(DOWNLOAD_URL, destination);
         if ("".equals(downloadedZipFile)) {
             return "";
         }
         try {
-            PatchingTask.sendMessage(PatchingDialogModel.STEP_RUNNING, context.getString(R.string.wait_unzip_patch), context);
+            patchingCallback.sendMessage(R.string.wait_unzip_patch);
             return FileUtils.unzip(downloadedZipFile, PATCH_FILE_TO_FIND, DOC_FILE_TO_FIND);
         } catch (IOException e) {
             e.printStackTrace();
@@ -219,7 +219,7 @@ public class PatchFinder {
                 }
             });
             try {
-                PatchingTask.sendMessage(PatchingDialogModel.STEP_RUNNING, context.getString(R.string.wait_unzip_patch), context);
+                patchingCallback.sendMessage(R.string.wait_unzip_patch);
                 return FileUtils.unzip(files.get(0), PATCH_FILE_TO_FIND, DOC_FILE_TO_FIND, appFolder);
             } catch (IOException e) {
                 e.printStackTrace();

@@ -1,5 +1,8 @@
 package fr.mother3vf.mother3vf;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /*******************************************************************************
  * This file is part of MOTHER 3 VF for Android (2017, JumpmanFR)
  * <p>
@@ -11,17 +14,8 @@ package fr.mother3vf.mother3vf;
  * Developed by JumpmanFR
  * Inspired from Paul Kratt’s MultiPatch app for macOS
  ******************************************************************************/
-public class PatchingDialogModel {
+public class PatchingDialogModel implements Parcelable {
     private static PatchingDialogModel instance;
-
-    private PatchingDialogModel() {}
-
-    public static PatchingDialogModel getInstance() {
-        if (instance == null) {
-            instance = new PatchingDialogModel();
-        }
-        return instance;
-    }
 
     public static final int STEP_NONE = -1;
     public static final int STEP_FAILED = 0;
@@ -34,14 +28,35 @@ public class PatchingDialogModel {
     private String message;
     private String fileParam = "";
 
+    public PatchingDialogModel() {
+    }
+
+    protected PatchingDialogModel(Parcel in) {
+        resultCode = in.readInt();
+        message = in.readString();
+        fileParam = in.readString();
+    }
+
+    public static final Creator<PatchingDialogModel> CREATOR = new Creator<PatchingDialogModel>() {
+        @Override
+        public PatchingDialogModel createFromParcel(Parcel in) {
+            return new PatchingDialogModel(in);
+        }
+
+        @Override
+        public PatchingDialogModel[] newArray(int size) {
+            return new PatchingDialogModel[size];
+        }
+    };
+
     public void set(int code, String msg) {
         resultCode = code;
         message = msg;
     }
 
-    public void set(int code, String msg, String df) {
+    public void set(int code, String msg, String fp) {
         set(code, msg);
-        fileParam = df;
+        fileParam = fp;
     }
 
     public void reset() {
@@ -58,5 +73,17 @@ public class PatchingDialogModel {
 
     public String getFileParam() {
         return fileParam;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeInt(resultCode);
+        parcel.writeString(message);
+        parcel.writeString(fileParam);
     }
 }

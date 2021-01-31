@@ -1,13 +1,15 @@
 package fr.mother3vf.mother3vf;
 
-import android.app.IntentService;
-import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
+import android.os.ResultReceiver;
 import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
 
+import androidx.annotation.NonNull;
+import androidx.core.app.JobIntentService;
 import fr.mother3vf.mother3vf.patcher.PatchException;
 import fr.mother3vf.mother3vf.patcher.UPS;
 
@@ -23,47 +25,63 @@ import fr.mother3vf.mother3vf.patcher.UPS;
  * Developed by JumpmanFR
  * Inspired from Paul Kratt’s MultiPatch app for macOS
  ******************************************************************************/
-public class PatchingTask extends IntentService {
+public class PatchingTask extends JobIntentService { // TODO JobIntentService
     public static final String ACTION_PATCH = "fr.mother3vf.mother3vf.action.ACTION_PATCH";
 
-    public static final String REFRESH_DIALOG = "fr.mother3vf.mother3vf.action.REFRESH_PATCHING_DIALOG";
+    public static final int PATCHING_JOB_ID = 10000;
 
+    public static final int REFRESH_DIALOG = 12345;
+    public static final String RESULT_STEP = "RESULT_STEP";
+    public static final String RESULT_MSG = "RESULT_MSG";
+    public static final String RESULT_FILE = "RESULT_FILE";
+
+    public static final String RECEIVER = "RECEIVER";
     public static final String ROM_FILE = "ROM_FILE";
     public static final String PATCH_FILE = "PATCH_FILE";
     public static final String BACKUP = "BACKUP";
     public static final String CHECK_ALREADY_PATCHED = "CHECK_ALREADY_PATCHED";
 
+    private ResultReceiver resultReceiver;
+
     public PatchingTask() {
-        super("PatchingTask");
+        super();
     }
 
+    public class PatchingCallback {
+        void sendMessage(int messageId) {
+            PatchingTask.this.sendMessage(PatchingDialogModel.STEP_RUNNING, getBaseContext().getString(messageId));
+        }
+    }
+
+    private final PatchingCallback patchingCallback = new PatchingCallback();
 
     @Override
-    protected void onHandleIntent(Intent intent) {
+    protected void onHandleWork(@NonNull Intent intent) {
         if (ACTION_PATCH.equals(intent.getAction())) {
+            resultReceiver = intent.getParcelableExtra(RECEIVER);
             String romFilePath = intent.getStringExtra(ROM_FILE);
             boolean backup = intent.getBooleanExtra(BACKUP, true);
             boolean checkAlreadyPatched = intent.getBooleanExtra(CHECK_ALREADY_PATCHED, true);
             String docFile = "";
-            if (romFilePath.toLowerCase().endsWith(".zip")) {
-                sendMessage(PatchingDialogModel.STEP_RUNNING, getResources().getString(R.string.wait_unzip_rom), getBaseContext());
+            if (romFilePath != null && romFilePath.toLowerCase().endsWith(".zip")) {
+                sendMessage(PatchingDialogModel.STEP_RUNNING, getResources().getString(R.string.wait_unzip_rom));
                 try {
                     romFilePath = FileUtils.unzip(romFilePath, MainActivity.ROM_FORMATS, "");
                     if ("".equals(romFilePath)) {
-                        sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.rom_zip_not_found), getBaseContext());
+                        sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.rom_zip_not_found));
                         return;
                     }
                 } catch (IOException e) {
-                    sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.rom_zip_error), getBaseContext());
+                    sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.rom_zip_error));
                     return;
                 }
             }
             File romFile = new File(romFilePath);
             if (romFile.exists()) {
                 // STEP 1: FINDING THE PATCH FILE (+ DOWNLOADING, UNZIPPING, ETC.)
-                sendMessage(PatchingDialogModel.STEP_RUNNING, getResources().getString(R.string.wait_prepare), getBaseContext());
+                sendMessage(PatchingDialogModel.STEP_RUNNING, getResources().getString(R.string.wait_prepare));
 
-                PatchFinder patchFinder = new PatchFinder(getBaseContext());
+                PatchFinder patchFinder = new PatchFinder(patchingCallback);
                 String patchFilePath;
                 if (intent.hasExtra(PATCH_FILE)) {
                     patchFilePath = intent.getStringExtra(PATCH_FILE);
@@ -71,16 +89,16 @@ public class PatchingTask extends IntentService {
                     patchFilePath = patchFinder.findAndSmartSelectInMainFolders(romFile.getParentFile(), getApplicationContext());
                 }
                 if (patchFilePath == null || "".equals(patchFilePath)) {
-                    sendMessage(PatchingDialogModel.STEP_BROWSE, getResources().getString(R.string.patch_not_found), getBaseContext());
+                    sendMessage(PatchingDialogModel.STEP_BROWSE, getResources().getString(R.string.patch_not_found));
                     return;
                 }
                 docFile = patchFinder.findAttachedDoc(patchFilePath);
                 if (!romFile.canWrite()) {
-                    sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.cantwrite), docFile, getBaseContext());
+                    sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.cantwrite), docFile);
                     return;
                 }
                 // STEP 2: APPLYING THE PATCH
-                sendMessage(PatchingDialogModel.STEP_RUNNING, getResources().getString(R.string.wait_patching), getBaseContext());
+                sendMessage(PatchingDialogModel.STEP_RUNNING, getResources().getString(R.string.wait_patching));
                 Log.v(PatchingTask.class.getSimpleName(), "Applying patch");
                 //int e = MainActivity.upsPatchRom(romFile, patchFile, romFile + ".temp", 0);
 
@@ -91,7 +109,7 @@ public class PatchingTask extends IntentService {
                     try {
                         UPS.UpsCrc crc = UPS.readUpsCrc(getBaseContext(), patchFile);
                         if (crc.getOutputFileCRC() == org.apache.commons.io.FileUtils.checksumCRC32(romFile)) {
-                            sendMessage(PatchingDialogModel.STEP_ALREADY, getResources().getString(R.string.already_exists), patchFilePath, getBaseContext());
+                            sendMessage(PatchingDialogModel.STEP_ALREADY, getResources().getString(R.string.already_exists), patchFilePath);
                             return;
                         }
                     } catch (Exception ignored) {
@@ -113,7 +131,7 @@ public class PatchingTask extends IntentService {
                     if (e instanceof IOException) {
                         msg = getResources().getString(R.string.patching_error_io) + msg;
                     }
-                    sendMessage(PatchingDialogModel.STEP_FAILED, msg, docFile, getBaseContext());
+                    sendMessage(PatchingDialogModel.STEP_FAILED, msg, docFile);
                     return;
                 }
 
@@ -136,29 +154,29 @@ public class PatchingTask extends IntentService {
                     File tempRom = new File(romFilePath + ".temp");
                     successMoveNewRom = tempRom.renameTo(baseRom);
                     Log.v(PatchingTask.class.getSimpleName(), "Done");
-                    sendMessage(PatchingDialogModel.STEP_SUCCESS, getResources().getString(R.string.success), docFile, getBaseContext());
+                    sendMessage(PatchingDialogModel.STEP_SUCCESS, getResources().getString(R.string.success), docFile);
                 }
 
                 if (!successMoveOldRom || !successMoveNewRom) {
                     Log.v(PatchingTask.class.getSimpleName(), "Renaming failure: successMoveOldRom=" + successMoveOldRom + "; successMoveNewRom=" + successMoveNewRom);
-                    sendMessage(PatchingDialogModel.STEP_SUCCESS, getResources().getString(R.string.cant_change_temp_files), docFile, getBaseContext());
+                    sendMessage(PatchingDialogModel.STEP_SUCCESS, getResources().getString(R.string.cant_change_temp_files), docFile);
                 }
 
             } else {
-                sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.rom_not_found), docFile, getBaseContext());
+                sendMessage(PatchingDialogModel.STEP_FAILED, getResources().getString(R.string.rom_not_found), docFile);
             }
         }
     }
 
-    public static void sendMessage(int step, String msg, Context context) {
-        sendMessage(step, msg, "", context);
+    public void sendMessage(int step, String msg) {
+        sendMessage(step, msg, "");
     }
 
-    public static void sendMessage(int step, String msg, String docFile, Context context) {
-        PatchingDialogModel.getInstance().set(step, msg, docFile);
-        Intent broadcastIntent = new Intent();
-        broadcastIntent.setAction(REFRESH_DIALOG);
-        broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);
-        context.sendBroadcast(broadcastIntent);
+    public void sendMessage(int step, String msg, String paramFile) {
+        Bundle bundle = new Bundle();
+        bundle.putInt(RESULT_STEP, step);
+        bundle.putString(RESULT_MSG, msg);
+        bundle.putString(RESULT_FILE, paramFile);
+        resultReceiver.send(REFRESH_DIALOG, bundle);
     }
 }

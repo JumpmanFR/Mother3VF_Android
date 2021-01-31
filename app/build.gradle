@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 29
     defaultConfig {
         applicationId "fr.mother3vf.mother3vf"
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 29
     }
     sourceSets {
         main {

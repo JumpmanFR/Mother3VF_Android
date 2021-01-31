@@ -51,11 +51,36 @@ public class DFragment extends DialogFragment {
             if (dialogMessage == null) {
                 dialogMessage = arguments.getString(MESSAGE);
             }
-            if (arguments.getBoolean(PROGRESS, false)) { // if (PROGRESS is true considering his default value is false)
+            if (arguments.getBoolean(PROGRESS, false)) //noinspection SpellCheckingInspection
+            { // if (PROGRESS is true considering his default value is false)
+
+                /* TODO
+                Reprendre 2ᵉ réponse de https://stackoverflow.com/questions/45373007/progressdialog-is-deprecated-what-is-the-alternate-one-to-use
+                Factoriser la création d’un AlertDialog avec la partie else
+                 */
+
                 ProgressDialog pd = ProgressDialog.show(getActivity(), getResources().getString(arguments.getInt(TITLE)),
                         dialogMessage, true);
                 pd.setIcon(arguments.getInt(ICON, R.mipmap.ic_launcher));
                 return pd;
+                /*AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
+                        .setIcon(arguments.getInt(ICON, R.mipmap.ic_launcher))
+                        .setTitle(arguments.getInt(TITLE, arguments.getInt(TITLE)))
+                        .setMessage(HtmlCompat.fromHtml(dialogMessage, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                ProgressBar pb = new ProgressBar(getActivity(), null, android.R.attr.progressBarStyleLarge);
+                ConstraintLayout layout = getActivity().findViewById(R.id.inside_view);
+                ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(100,100);
+                //params.addRule(RelativeLayout.CENTER_IN_PARENT);
+                layout.addView(pb, params);
+                pb.setVisibility(View.VISIBLE);
+                final AlertDialog dialog = builder.create();
+                dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                    @Override
+                    public void onShow(DialogInterface di) {
+                        ((TextView) dialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
+                    }
+                });
+                return dialog;*/
             } else {
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                         .setIcon(arguments.getInt(ICON, R.mipmap.ic_launcher))

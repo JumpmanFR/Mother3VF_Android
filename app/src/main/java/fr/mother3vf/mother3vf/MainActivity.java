@@ -4,16 +4,16 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.ActionBar;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.ResultReceiver;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.TextView;
@@ -42,11 +42,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     public static final String ROM_FORMATS = ".*\\.(gba|agb|bin|jgc|rom)";
     public static final String ROM_FORMATS_EXTENDED = ".*\\.(gba|agb|bin|jgc|rom|rom\\.original\\d+)";
 
-    private static final String CURRENT_FOLDER = "CURRENT_FOLDER";
-    private static final String ROM_FILE = "ROM_FILE";
-    private static final String PATCH_FILE = "PATCH_FILE";
-    private static final String DOC_FILE = "DOC_FILE";
-    private static final String DO_BACKUP_ROM = "DO_BACKUP_ROM";
+    private static final String SAVED_CURRENT_FOLDER = "CURRENT_FOLDER";
+    private static final String SAVED_ROM_FILE = "ROM_FILE";
+    private static final String SAVED_PATCH_FILE = "PATCH_FILE";
+    private static final String SAVED_DOC_FILE = "DOC_FILE";
+    private static final String SAVED_DO_BACKUP_ROM = "DO_BACKUP_ROM";
+    private static final String SAVED_DIALOG_MODEL = "DIALOG_MODEL";
 
     public static final int DIALOG_PERMISSIONS = 101;
     public static final int DIALOG_OVERWRITE = 102;
@@ -59,6 +60,10 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private static final int PERMISSION_REQUEST = 178;
     private static final int NUM_PERMISSIONS = 2;
 
+    // TODO remove
+    private static int INSTANCES = 0;
+    private int instanceId;
+
     private ActivityMainBinding views;
 
     private DFragment progressDialog;
@@ -68,19 +73,30 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private String patchFile = "";
     private String docFile = "";
     private boolean doBackupRom = false;
+    private PatchingDialogModel dialogModel;
 
-    class PatchingTaskReceiver extends BroadcastReceiver {
+    class PatchingTaskReceiver extends ResultReceiver {
+        public PatchingTaskReceiver(Handler handler) {
+            super(handler);
+        }
+
         @Override
-        public void onReceive(Context context, Intent intent) {
-            refreshPatchingDialog();
+        public void onReceiveResult(int resultCode, Bundle resultData) {
+            if (resultCode == PatchingTask.REFRESH_DIALOG)
+            dialogModel.set(resultData.getInt(PatchingTask.RESULT_STEP),
+                    resultData.getString(PatchingTask.RESULT_MSG, resultData.getString(PatchingTask.RESULT_FILE)));
+            refreshPatchingDialog(/*resultCode, resultData*/);
         }
     }
 
-    private PatchingTaskReceiver patchingTaskReceiver;
+    private ResultReceiver patchingTaskReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        instanceId = INSTANCES;
+        INSTANCES++;
+        Log.v("MainActivity", "INSTANCE " + this.instanceId + " CREATED");
         views = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(views.getRoot());
 
@@ -104,40 +120,48 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }
 
         if (savedInstanceState != null) {
-            romFile = savedInstanceState.getString(ROM_FILE);
-            patchFile = savedInstanceState.getString(PATCH_FILE);
-            currentFolder = savedInstanceState.getString(CURRENT_FOLDER);
-            docFile = savedInstanceState.getString(DOC_FILE);
-            doBackupRom = savedInstanceState.getBoolean(DO_BACKUP_ROM);
+            romFile = savedInstanceState.getString(SAVED_ROM_FILE);
+            patchFile = savedInstanceState.getString(SAVED_PATCH_FILE);
+            currentFolder = savedInstanceState.getString(SAVED_CURRENT_FOLDER);
+            docFile = savedInstanceState.getString(SAVED_DOC_FILE);
+            doBackupRom = savedInstanceState.getBoolean(SAVED_DO_BACKUP_ROM);
+            dialogModel = savedInstanceState.getParcelable(SAVED_DIALOG_MODEL);
+        } else {
+            dialogModel = new PatchingDialogModel();
         }
         updateViews();
 
-        patchingTaskReceiver = new PatchingTaskReceiver();
+        patchingTaskReceiver = new PatchingTaskReceiver(new Handler());
+
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         refreshPatchingDialog();
-        IntentFilter filter = new IntentFilter(PatchingTask.REFRESH_DIALOG);
-        filter.addCategory(Intent.CATEGORY_DEFAULT);
-        registerReceiver(patchingTaskReceiver, filter);
+        //IntentFilter filter = new IntentFilter(PatchingTask.REFRESH_DIALOG);
+        //filter.addCategory(Intent.CATEGORY_DEFAULT);
+        //registerReceiver(patchingTaskReceiver, filter);
+        /* TODO
+        Finish replacement with ResultReceiver
+         */
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        unregisterReceiver(patchingTaskReceiver);
+        //unregisterReceiver(patchingTaskReceiver);
     }
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle state) {
         super.onSaveInstanceState(state);
-        state.putString(ROM_FILE, romFile);
-        state.putString(PATCH_FILE, patchFile);
-        state.putString(CURRENT_FOLDER, currentFolder);
-        state.putString(DOC_FILE, docFile);
-        state.putBoolean(DO_BACKUP_ROM, doBackupRom);
+        state.putString(SAVED_ROM_FILE, romFile);
+        state.putString(SAVED_PATCH_FILE, patchFile);
+        state.putString(SAVED_CURRENT_FOLDER, currentFolder);
+        state.putString(SAVED_DOC_FILE, docFile);
+        state.putBoolean(SAVED_DO_BACKUP_ROM, doBackupRom);
+        state.putParcelable(SAVED_DIALOG_MODEL, dialogModel);
     }
 
     @Override
@@ -208,7 +232,11 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }
         i.putExtra(PatchingTask.CHECK_ALREADY_PATCHED, checkAlreadyPatched);
         i.putExtra(PatchingTask.BACKUP, doBackupRom);
-        startService(i);
+        i.putExtra(PatchingTask.RECEIVER, patchingTaskReceiver);
+        PatchingTask.enqueueWork(this, PatchingTask.class, PatchingTask.PATCHING_JOB_ID, i);
+        /*
+        TODO manage SDK version ⩽ 25 with startService
+         */
     }
 
     /**
@@ -238,6 +266,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     }
 
     private void updateViews() {
+        Log.v("MainActivity", "UPDATEVIEWS INSTANCE " + this.instanceId);
         TextView romText = views.romText;
         boolean hasRom = !"".equals(romFile);
         views.applyPatch.setEnabled(hasRom);
@@ -268,6 +297,10 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivityForResult(intent, FileBrowserActivity.BROWSE_FOR_ROM);
+            /*Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("file/*");
+            startActivityForResult(intent, FileBrowserActivity.BROWSE_FOR_ROM);*/
         } else if (view.getId() == R.id.applyPatch) {
             String lowerName = romFile.toLowerCase();
             if (lowerName.endsWith(".zip") || lowerName.endsWith(".7z") || lowerName.endsWith(".rar")) {
@@ -358,11 +391,11 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 }
                 break;
             case DIALOG_PATCH_FAILED: // User has closed the alert after a failed patching process
-                PatchingDialogModel.getInstance().reset();
+                dialogModel.reset();
                 patchFile = "";
                 break;
             case DIALOG_PATCH_SUCCESS: // User has closed the alert after a successful patching process
-                PatchingDialogModel.getInstance().reset();
+                dialogModel.reset();
                 if (!"".equals(docFile)) {
                     Intent docIntent = new Intent(this, DocActivity.class);
                     docIntent.putExtra(DocActivity.DOC_FILE, docFile);
@@ -389,7 +422,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     }
 
     private void showPatchingCanceled() {
-        PatchingDialogModel.getInstance().reset();
+        dialogModel.reset();
         DialogFragment dFragment = new DFragment();
         Bundle args = new Bundle();
         args.putString(DFragment.MESSAGE, getResources().getString(R.string.nopatch));
@@ -414,7 +447,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
      * Generates message dialog depending on what happened during the patching process
      */
     private void refreshPatchingDialog() {
-        PatchingDialogModel patchingDialogModel = PatchingDialogModel.getInstance();
+        PatchingDialogModel patchingDialogModel = dialogModel;
         String message = patchingDialogModel.getMessage();
         switch (patchingDialogModel.getResultCode()) {
             case PatchingDialogModel.STEP_FAILED: // The patching process failed
@@ -471,7 +504,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 alreadyArgs.putInt(DFragment.BUTTONS, 2);
                 progressDialog.setArguments(alreadyArgs);
                 getSupportFragmentManager().beginTransaction().add(progressDialog, "").commitAllowingStateLoss();
-                PatchingDialogModel.getInstance().reset();
+                dialogModel.reset();
                 docFile = "";
                 patchFile = patchingDialogModel.getFileParam();
                 updateViews();
@@ -489,7 +522,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 args.putInt(DFragment.BUTTONS, 2);
                 progressDialog.setArguments(args);
                 getSupportFragmentManager().beginTransaction().add(progressDialog, "").commitAllowingStateLoss();
-                PatchingDialogModel.getInstance().reset();
+                dialogModel.reset();
                 docFile = "";
                 updateViews();
                 break;
